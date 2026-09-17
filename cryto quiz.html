@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Cryptography & Steganography Exam Simulator</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f4f7f6; 
+            padding-bottom: 80px; 
+            color: #333; 
+            -webkit-font-smoothing: antialiased;
+        }
+        h1, h2 { color: #2c3e50; text-align: center; padding: 0 10px; }
+        .section-desc { text-align: center; color: #555; padding: 0 15px; margin-bottom: 20px; font-weight: 500;}
+        
+        .score-box {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+
+        .main_box {
+            border: 1px solid #ddd;
+            margin: 20px auto;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+            padding-bottom: 20px;
+            width: 90%;
+        }
+
+        .question {
+            font-size: 1.15em;
+            font-weight: 600;
+            background-color: #34495e;
+            color: white;
+            padding: 15px 20px;
+            line-height: 1.4;
+        }
+
+        .container { padding: 0 20px; margin-top: 15px; }
+        
+        .opt {
+            margin: 10px 0;
+            padding: 14px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: block; 
+            background-color: #fff;
+            -webkit-tap-highlight-color: transparent; 
+            font-size: 1em;
+            line-height: 1.4;
+        }
+        .opt:hover, .opt:active { background-color: #f8f9fa; border-color: #bdc3c7; }
+        input[type="radio"] { margin-right: 12px; transform: scale(1.3); vertical-align: middle; }
+
+        .explanation, .sb-answer {
+            display: none;
+            padding: 15px;
+            margin: 20px 0 0 0;
+            border-radius: 6px;
+            border-left: 5px solid;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        .explanation.correct { background-color: #e8f5e9; border-left-color: #27ae60; }
+        .explanation.correct h4 { color: #27ae60; margin-top: 0; margin-bottom: 8px; }
+        .explanation.wrong { background-color: #f8d7da; border-left-color: #dc3545; }
+        .explanation.wrong h4 { color: #721c24; margin-top: 0; margin-bottom: 8px; }
+
+        .correct-answer { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: 600;}
+        .wrong-answer { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+
+        .sb-answer { background-color: #e9ecef; border-left-color: #007bff; display: none; }
+        .sb-answer h4 { color: #007bff; margin-top: 0; margin-bottom: 8px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f4f7f6; }
+
+        .btn-container { text-align: center; margin: 20px; }
+        .submit-btn, .toggle-btn, .generate-btn {
+            background-color: #27ae60;
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+            transition: all 0.3s;
+            -webkit-appearance: none;
+        }
+        .toggle-btn { background-color: #007bff; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); margin-top: 10px;}
+        .generate-btn { background-color: #8e44ad; box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3); margin-bottom: 20px; font-size: 1.2em; width: 90%; max-width: 400px;}
+        .submit-btn { width: 100%; max-width: 400px; font-size: 1.3em; padding: 16px 40px; }
+        .submit-btn:active, .toggle-btn:active, .generate-btn:active { transform: scale(0.98); }
+        .submit-btn:disabled { background-color: #95a5a6; box-shadow: none; transform: none; cursor: not-allowed; }
+        
+        .set-indicator { text-align: center; font-weight: bold; color: #8e44ad; font-size: 1.2em; margin-bottom: 10px;}
+    </style>
+</head>
+<body>
+
+    <div id="scoreDisplay" class="score-box"></div>
+
+    <h1>Cryptography & Steganography Exam Simulator</h1>
+    
+    <div class="btn-container">
+        <button type="button" class="generate-btn" onclick="generateNewSet()">🎲 Generate New Question Set</button>
+        <div id="setIndicator" class="set-indicator">Currently viewing: Set 1 of 5</div>
+    </div>
+
+    <h2>Section A: Objective Questions (30 Questions)</h2>
+    <div class="section-desc">Select the best answer. Tap "Submit Section A" at the bottom to view your score.</div>
+
+    <form id="quizForm" onsubmit="return false;">
+        <div id="sectionA-container"></div>
+
+        <div class="btn-container">
+            <button type="button" id="submitBtn" class="submit-btn" onclick="submitQuiz()">Submit Section A</button>
+        </div>
+    </form>
+
+    <hr style="margin: 40px 0; border: 1px solid #ccc;">
+
+    <h2>Section B: Short Answer & Case Study (4 Questions)</h2>
+    <div class="section-desc">Read the scenario, formulate your answer, then tap "Reveal Answer" to check your knowledge.</div>
+    
+    <div id="sectionB-container"></div>
+
+    <script>
+        const quizData = [
+            // ================== SET 1 ==================
+            {
+                mcq: [
+                    { q: "What is a 'salt' in the context of cryptographic hashing?", options: ["A) An encryption algorithm", "B) A random character string added to a password", "C) A digital certificate component", "D) A public key"], ans: "B", exp: "A salt is a random character string added to the beginning or the end of a password[cite: 8]." },
+                    { q: "Where should a salt ideally be implemented?", options: ["A) Generated randomly on the developers' side", "B) Chosen manually by the user", "C) Generated by the Certificate Authority", "D) Added after the hashing function is completed"], ans: "A", exp: "Salts should be randomly generated on the developers' side when a user creates their password[cite: 8]." },
+                    { q: "What primary problem does adding a salt solve?", options: ["A) Man-in-the-Middle attacks", "B) Traffic analysis", "C) The hash collision problem", "D) Symmetric key distribution"], ans: "C", exp: "Salts solve the collision problem that hash functions suffer from[cite: 8]." },
+                    { q: "Which property ensures it is computationally infeasible to find two different data objects mapping to the same hash?", options: ["A) One-way property", "B) Collision-free property", "C) Masquerade property", "D) Non-repudiation"], ans: "B", exp: "The collision-free property makes it computationally infeasible to find two data objects that map to the same hash[cite: 8]." },
+                    { q: "In the Yuval Attack (Birthday Attack), how does the attacker forge a signature?", options: ["A) By breaking the encryption algorithm", "B) By stealing the private key", "C) By finding a harmless and a malicious message that produce the same hash", "D) By intercepting the digital certificate"], ans: "C", exp: "The attacker creates harmless and malicious versions of a message and checks if any hash matches[cite: 8]." },
+                    { q: "What is the primary role of a Certificate Authority (CA)?", options: ["A) To generate symmetric session keys", "B) To issue digital certificates and verify authenticity", "C) To calculate message hashes", "D) To act as a KDC"], ans: "B", exp: "A CA issues digital certificates and verifies their authenticity[cite: 8]." },
+                    { q: "Which algorithm provides a digital signature scheme based on the integer factorization problem?", options: ["A) ECDSA", "B) SHA-3", "C) RSA", "D) HMAC"], ans: "C", exp: "RSA provides a digital signature scheme based on the integer factorization problem[cite: 8]." },
+                    { q: "In digital signatures, who can verify the integrity of a message signed by a user?", options: ["A) Only the CA", "B) Anyone who knows the user's private key", "C) Anyone who knows the user's public key", "D) Only the sender"], ans: "C", exp: "Anyone who knows the user's public key can verify the integrity of the message[cite: 8]." },
+                    { q: "In symmetric key distribution, if there are N hosts, how many keys are required?", options: ["A) N", "B) N-1", "C) N(N - 1)/2", "D) N^2"], ans: "C", exp: "If there are N hosts, the number of required symmetric keys is N(N – 1)/2[cite: 7]." },
+                    { q: "What technique allows users to save another's public key for future use?", options: ["A) Caching", "B) Hashing", "C) Salting", "D) Hopping"], ans: "A", exp: "Users can save the other's public key for future use—a technique known as caching[cite: 7]." },
+                    { q: "Which X.509 Version 3 extension restricts the types of certificates that can be issued by the subject CA?", options: ["A) Key usage", "B) Subject alternative name", "C) Certification path constraints", "D) Basic constraints"], ans: "C", exp: "Certification path constraints restrict the types of certificates that can be issued by the subject CA[cite: 7]." },
+                    { q: "Why might a CA revoke a certificate before it naturally expires?", options: ["A) The user upgraded their key", "B) The user's private key is assumed to be compromised", "C) The user cleared their cache", "D) The network is slow"], ans: "B", exp: "A certificate is revoked if the user's private key is assumed to be compromised[cite: 7]." },
+                    { q: "What is the primary goal of Steganography compared to Cryptography?", options: ["A) Stego hides meaning, crypto hides existence", "B) Stego hides existence, crypto hides meaning", "C) Both hide meaning", "D) Both hide existence"], ans: "B", exp: "Steganography hides the existence of the message, whereas cryptography hides the meaning[cite: 5]." },
+                    { q: "Why are images considered ideal cover media for steganography?", options: ["A) Lossy compression", "B) Visual redundancy allows slight alterations without noticeable changes", "C) Small file sizes", "D) Auto-encryption"], ans: "B", exp: "Visual redundancy allows pixels to be slightly altered without noticeable visual changes[cite: 5]." },
+                    { q: "Which image format is generally best suited for basic LSB steganography because it is lossless?", options: ["A) JPEG", "B) GIF", "C) PNG", "D) MP4"], ans: "C", exp: "PNG and BMP formats are lossless, and better suited for LSB-based image steganography[cite: 5]." },
+                    { q: "What is a significant limitation of using JPEG images for basic steganography?", options: ["A) It uses lossy compression which can destroy the hidden data", "B) Black and white only", "C) Requires a public key", "D) Incompatible with DCT"], ans: "A", exp: "JPEG uses lossy compression, which can remove the hidden message[cite: 5]." },
+                    { q: "Which steganography tool supports embedding data in BMP, JPEG, and WAV formats?", options: ["A) OpenStego", "B) Steghide", "C) DeepStego", "D) SNOW"], ans: "B", exp: "Steghide supports embedding in BMP, JPEG, and WAV[cite: 5]." },
+                    { q: "Which property of the Human Auditory System (HAS) allows hidden data to be placed under a louder sound?", options: ["A) High temporal resolution", "B) Insensitivity to phase", "C) Masking effect", "D) Spatial redundancy"], ans: "C", exp: "The Masking effect means a louder sound masks a quieter one[cite: 4]." },
+                    { q: "Which audio stego technique embeds data by introducing controlled delays and amplitudes?", options: ["A) LSB Coding", "B) Phase Coding", "C) Echo Hiding", "D) Spread Spectrum"], ans: "C", exp: "Echo Hiding embeds data by introducing echoes at controlled delays and amplitudes[cite: 4]." },
+                    { q: "Which uncompressed audio format is ideal for robust LSB data embedding?", options: ["A) AAC", "B) MP3", "C) FLV", "D) WAV"], ans: "D", exp: "WAV is uncompressed and is the preferred format for LSB[cite: 4]." },
+                    { q: "In Spread Spectrum audio stego, what is used to modulate the secret data?", options: ["A) DCT", "B) Pseudo-random noise (PN) sequence", "C) LSBs", "D) Error-correcting masks"], ans: "B", exp: "In DSSS, secret data is modulated with a pseudo-random noise (PN) sequence[cite: 4]." },
+                    { q: "Which category of text steganography manipulates spacing to hide data?", options: ["A) Format-Based Method", "B) Random Generation", "C) Linguistic Methods", "D) Spectral Method"], ans: "A", exp: "Format-Based Method manipulates formatting or spacing to hide data[cite: 3]." },
+                    { q: "Which format-based text stego method involves the horizontal shifting of words?", options: ["A) Line-shift coding", "B) Word-shift coding", "C) White space manipulation", "D) Font formatting"], ans: "B", exp: "Word-shift coding involves the horizontal shifting of words[cite: 3]." },
+                    { q: "What does 'White space manipulation' do in text steganography?", options: ["A) Changes fonts", "B) Rearranges sentences", "C) Replaces words", "D) Alters spaces or tabs at the ends of lines"], ans: "D", exp: "White space manipulation alters spaces/tabs at line ends to encode data[cite: 3]." },
+                    { q: "Which text stego tool disguises a message as a spam email?", options: ["A) SNOW", "B) Texto", "C) SpamMimic", "D) Nicetext"], ans: "C", exp: "SpamMimic disguises a message as a spam email[cite: 3]." },
+                    { q: "Which linguistic text stego method uses synonyms and paraphrases?", options: ["A) Syntactic methods", "B) Semantic methods", "C) Markov chains", "D) Font formatting"], ans: "B", exp: "Semantic methods use synonyms and paraphrases to hide messages[cite: 3]." },
+                    { q: "When measuring the effectiveness of text steganography, which attribute should ideally be Low?", options: ["A) Payload", "B) Transparency", "C) Robustness", "D) Computation"], ans: "D", exp: "Computation should be Low, while Payload, Transparency, and Robustness should be High[cite: 3]." },
+                    { q: "Which text stego tool specifically hides data using spaces and tabs?", options: ["A) Nicetext", "B) SNOW", "C) SpamMimic", "D) StegCloak"], ans: "B", exp: "SNOW (Steganographic Nature Of Whitespace) hides data in spaces and tabs[cite: 3]." },
+                    { q: "What does BPCS stand for in Video Steganography?", options: ["A) Bit-Plane Complexity Segmentation", "B) Binary Phase Coding System", "C) Broadcast Protection Cipher", "D) Block Pixel Compression"], ans: "A", exp: "BPCS stands for Bit-Plane Complexity Segmentation[cite: 4]." },
+                    { q: "What is the primary function of a nonce in a Key Distribution Protocol?", options: ["A) To encrypt the session key", "B) To compress the payload", "C) To ensure freshness and prevent replay attacks", "D) To generate a digital signature"], ans: "C", exp: "Nonces prevent replay attacks by ensuring message freshness[cite: 7]." }
+                ],
+                subj: [
+                    { q: "Discuss the step-by-step process of using a Digital Signature for signing and verifying a message.", ans: "<strong>Signing Process:</strong><br>1. Calculate the message hash using a cryptographic hash function[cite: 8].<br>2. Encrypt the hash with the sender's private key to generate the signature[cite: 8].<br>3. Attach the signature to the message and send it[cite: 8].<br><br><strong>Verifying Process:</strong><br>1. The receiver calculates the hash of the received message[cite: 8].<br>2. The receiver decrypts the attached signature using the sender's public key to recover the original hash[cite: 8].<br>3. The receiver compares the two hashes; if they match, the signature is valid, proving authenticity[cite: 8]." },
+                    { q: "Compare Symmetric and Asymmetric Cryptography focusing on key usage and key distribution.", ans: "<table><tr><th>Feature</th><th>Symmetric Cryptography</th><th>Asymmetric Cryptography</th></tr><tr><td><strong>Key Usage</strong></td><td>Uses a single shared secret key for both encryption and decryption[cite: 8].</td><td>Uses a public/private key pair (encrypt with one, decrypt with the other)[cite: 8].</td></tr><tr><td><strong>Key Distribution Difficulty</strong></td><td>Managing keys becomes harder as the network gets bigger. Requires N(N-1)/2 keys for N hosts[cite: 7].</td><td>Easier distribution; public keys can be placed in a directory or shared via digital certificates[cite: 7].</td></tr></table>" },
+                    { q: "Case Study: You must hide a highly confidential message in a plain-text channel where encryption is forbidden. Suggest a text steganography method, state its workflow, and list two limitations.", ans: "<strong>Suggested Method:</strong> Use a Linguistic method like SpamMimic (disguises as spam) or a Format-Based method like SNOW (White space manipulation)[cite: 3].<br><br><strong>Workflow:</strong><br>1. Message -> 2. Encoding -> 3. Transmission -> 4. Hidden message -> 5. Decoding[cite: 3].<br><br><strong>Limitations:</strong><br>1. Limited data capacity[cite: 3].<br>2. Easy to destroy if the text is retyped or reformatted[cite: 3]." },
+                    { q: "Explain what a 'salt' is, why it is used in cryptography, and where it is implemented.", ans: "<strong>What it is:</strong> A salt is a random character string added to the beginning or end of a password before hashing[cite: 8].<br><br><strong>Why it is used:</strong> It solves the hash collision problem. Even if two users share the same password, unique salts ensure different salted-hashed outputs, massively increasing the brute-force search space[cite: 8].<br><br><strong>Where it is implemented:</strong> Salts should be randomly generated on the developers' side when a user creates their password and stored alongside the user data[cite: 8]." }
+                ]
+            },
+            // ================== SET 2 ==================
+            {
+                mcq: [
+                    { q: "What does MAC stand for in cryptography?", options: ["A) Mandatory Access Control", "B) Message Authentication Code", "C) Master Algorithm Cipher", "D) Media Access Control"], ans: "B", exp: "MAC stands for Message Authentication Code, also known as a keyed hash function[cite: 8]." },
+                    { q: "What is the primary difference between a Hash and a MAC?", options: ["A) A Hash uses a public key, a MAC uses a private key", "B) A MAC uses a shared secret key, a Hash does not", "C) A Hash provides confidentiality, a MAC does not", "D) A MAC is reversible"], ans: "B", exp: "A MAC is a keyed hash function used between two parties that share a secret key[cite: 8]." },
+                    { q: "In Authenticated Encryption (AE), what is simultaneously protected?", options: ["A) Confidentiality and availability", "B) Confidentiality and authenticity", "C) Authenticity and non-repudiation", "D) Integrity and availability"], ans: "B", exp: "AE systems simultaneously protect confidentiality and authenticity of communications[cite: 8]." },
+                    { q: "What is a common mistake when implementing password salts?", options: ["A) Making the salt random", "B) Salt reuse across multiple passwords", "C) Using SHA-256", "D) Storing the salt in the database"], ans: "B", exp: "The two most common mistakes are salt reuse and using a short salt[cite: 8]." },
+                    { q: "In the RSA algorithm, what components make up the public key?", options: ["A) {n, d}", "B) {n, e}", "C) {p, q}", "D) {e, d}"], ans: "B", exp: "The RSA key-pair consists of the public key {n, e} and the private key {n, d}[cite: 8]." },
+                    { q: "What does the 'Issuer' field in a digital certificate indicate?", options: ["A) The person receiving the certificate", "B) The algorithm used", "C) The Certificate Authority (CA) that issued the certificate", "D) The domain name"], ans: "C", exp: "The Issuer indicates the CA that issued and signed the certificate[cite: 8]." },
+                    { q: "Which type of digital certificate validates software authenticity to ensure it hasn't been tampered with?", options: ["A) SSL/TLS Certificate", "B) Client Certificate", "C) Code Signing Certificate", "D) S/MIME Certificate"], ans: "C", exp: "Code Signing Certificates are used to digitally sign software[cite: 8]." },
+                    { q: "What is an X.509 Certificate Revocation List (CRL)?", options: ["A) A list of new public keys", "B) A list of all revoked but not expired certificates issued by a CA", "C) A list of session keys", "D) A list of root CAs"], ans: "B", exp: "Each CA maintains a list consisting of all revoked but not expired certificates[cite: 7]." },
+                    { q: "Which video steganography method applies Discrete Cosine Transform (DCT)?", options: ["A) LSB in Frames", "B) Motion Vector Manipulation", "C) Transform Domain Embedding", "D) BPCS"], ans: "C", exp: "Transform Domain Embedding applies DCT or DWT to embed data in frequency coefficients[cite: 4]." },
+                    { q: "Which tool is known for generating natural-looking stego text using grammar models?", options: ["A) Nicetext", "B) SNOW", "C) OpenStego", "D) Steghide"], ans: "A", exp: "Nicetext generates natural-looking stego text using grammar models[cite: 3]." },
+                    { q: "What is the primary vulnerability of LSB Audio Steganography?", options: ["A) Low data capacity", "B) Highly vulnerable to compression (e.g., MP3 conversion)", "C) Insensitive to phase", "D) High computation time"], ans: "B", exp: "LSB is highly vulnerable to compression, noise, or signal processing[cite: 4]." },
+                    { q: "Which property is considered the strongest in hash function security?", options: ["A) Preimage Resistance", "B) Second Preimage Resistance", "C) Collision Resistance", "D) Masquerade Resistance"], ans: "C", exp: "Collision Resistance is the strongest. If a hash is collision-resistant, it automatically resists second preimage attacks[cite: 8]." },
+                    { q: "What is a 'master key' primarily used for?", options: ["A) To encrypt the payload", "B) To protect and exchange session keys", "C) To generate digital signatures", "D) To salt passwords"], ans: "B", exp: "Master keys are powerful, long-term keys that protect other keys (like session keys)[cite: 7]." },
+                    { q: "Which text stego method uses Markov chains to generate cover text?", options: ["A) Linguistic", "B) Format-based", "C) Random and Statistical Generation", "D) Visual"], ans: "C", exp: "Random and Statistical Generation methods use Markov chains to generate cover text from language models[cite: 3]." },
+                    { q: "Which audio stego technique relies on a reference phase for the first segment?", options: ["A) Phase Coding", "B) Echo Hiding", "C) LSB Coding", "D) Spread Spectrum"], ans: "A", exp: "Phase Coding embeds data by modifying the phase of discrete audio segments using a reference phase[cite: 4]." },
+                    { q: "What is the hash output size of SHA-1?", options: ["A) 128 bits", "B) 160 bits", "C) 256 bits", "D) 512 bits"], ans: "B", exp: "SHA-1 produces 160-bit hash values[cite: 8]." },
+                    { q: "Which video steganography technique modifies vectors in compressed videos like MPEG?", options: ["A) LSB in Frames", "B) Motion Vector Manipulation", "C) DCT Coefficient Analysis", "D) BPCS"], ans: "B", exp: "Motion Vector Manipulation alters motion vectors representing frame-to-frame object movement[cite: 4]." },
+                    { q: "What does the 'Masking effect' refer to in audio steganography?", options: ["A) Hiding data in high frequencies", "B) A louder sound masking a quieter one", "C) Altering the phase", "D) Adding echo"], ans: "B", exp: "The Masking effect: A louder sound masks a quieter one; hidden data is placed under this mask[cite: 4]." },
+                    { q: "Which image format is lossy and generally unsuitable for basic LSB steganography?", options: ["A) BMP", "B) PNG", "C) JPEG", "D) TIFF"], ans: "C", exp: "JPEG uses lossy compression, which can destroy hidden data[cite: 5]." },
+                    { q: "Which text stego technique alters bold or italic styling to encode bits?", options: ["A) Line-shift", "B) Word-shift", "C) Font formatting", "D) White space"], ans: "C", exp: "Font formatting uses bold/italic to encode bits[cite: 3]." },
+                    { q: "Which audio stego method requires synchronization between sender and receiver and has a lower data rate?", options: ["A) LSB", "B) Echo Hiding", "C) Phase Coding", "D) Spread Spectrum"], ans: "D", exp: "Spread Spectrum requires knowledge of the spreading code and synchronization for extraction, and has a lower data rate[cite: 4]." },
+                    { q: "What is the primary advantage of Transform Domain Embedding in video steganography?", options: ["A) Simplest to code", "B) Highest capacity", "C) More robust against compression and resizing", "D) Works best on uncompressed video"], ans: "C", exp: "It is more robust against compression, resizing, and cropping[cite: 4]." },
+                    { q: "Which tool provides a GUI for embedding in MP3/WAV?", options: ["A) OpenStego", "B) SilentEye", "C) Texto", "D) SNOW"], ans: "B", exp: "SilentEye provides a GUI for MP3/WAV[cite: 4]." },
+                    { q: "What does 'Subject alternative name' do in an X.509 certificate?", options: ["A) Revokes the cert", "B) Contains one or more alternative names (e.g., email, IP) for the subject", "C) Restricts key usage", "D) Acts as the CA signature"], ans: "B", exp: "It contains one or more alternative names, important for applications like email or IPSec[cite: 7]." },
+                    { q: "Which property implies you cannot reverse a hash to find the original input?", options: ["A) Preimage Resistance", "B) Collision Resistance", "C) Modulo Exponentiation", "D) Certificate chaining"], ans: "A", exp: "Preimage Resistance = Can’t reverse a hash[cite: 8]." },
+                    { q: "How many messages are required in the standard Public-Key Distribution Scenario (Figure 14.12) if caching is NOT used?", options: ["A) 3", "B) 5", "C) 7", "D) 9"], ans: "C", exp: "A total of seven messages are required[cite: 7]." },
+                    { q: "In the context of the CIA triad, what does a cryptographic hash function primarily protect?", options: ["A) Confidentiality", "B) Availability", "C) Data Integrity", "D) Authorization"], ans: "C", exp: "The principal object of a hash function is data integrity[cite: 8]." },
+                    { q: "Which image format supports transparency and is lossless, making it good for stego?", options: ["A) JPEG", "B) PNG", "C) MP3", "D) FLV"], ans: "B", exp: "PNG is lossless and supports transparency[cite: 5]." },
+                    { q: "Which text stego category rearranges sentence structures?", options: ["A) Format-based", "B) Syntactic methods", "C) Semantic methods", "D) Acronyms"], ans: "B", exp: "Syntactic methods rearrange sentence structure[cite: 3]." },
+                    { q: "What is 'Payload' in the context of measuring steganography effectiveness?", options: ["A) The amount of data that can be hidden", "B) The visual distortion", "C) The processing time", "D) The resistance to tampering"], ans: "A", exp: "Payload (which should be High) indicates the total number of bits hidden[cite: 3]." }
+                ],
+                subj: [
+                    { q: "Case Study: You intercept an email that contains a malicious payload but the sender claims it was digitally signed by them. Explain how a Man-in-the-Middle attack (like the Yuval attack) could lead to a forged digital signature, and how to prevent it.", ans: "<strong>The Attack:</strong> In a Yuval (Birthday) attack, an adversary finds a harmless message and a malicious message that produce the same hash value due to hash collisions[cite: 8]. The attacker gets the sender to sign the harmless message. Because both messages have the exact same hash, the valid signature works for the malicious message too[cite: 8].<br><br><strong>Prevention:</strong> Use longer, more secure hash algorithms (like SHA-256 or SHA-3) that are collision-resistant, and sign unique data like timestamps to prevent message substitution[cite: 8]." },
+                    { q: "Discuss the four types of Format-Based methods in Text Steganography.", ans: "<strong>1. Line-shift coding:</strong> Vertical shifting of text lines[cite: 3].<br><strong>2. Word-shift coding:</strong> Horizontal shifting of words[cite: 3].<br><strong>3. White space manipulation:</strong> Altering spaces or tabs at the ends of lines[cite: 3].<br><strong>4. Font formatting:</strong> Using bold, italic, or specific font attributes to encode bits[cite: 3]." },
+                    { q: "Explain the role of a Certificate Authority (CA) and how a Digital Certificate ensures the authenticity of a public key.", ans: "<strong>Role of CA:</strong> A CA is a trusted third party that issues digital certificates[cite: 8].<br><strong>How it ensures authenticity:</strong> The certificate binds a public key to an entity's identity (Subject)[cite: 8]. The CA signs this certificate using its own private key. When a user receives the certificate, they use the CA's well-known public key to verify the signature. If valid, they trust that the public key inside the certificate genuinely belongs to the Subject[cite: 8]." },
+                    { q: "Compare the use of Master Keys versus Session Keys in cryptographic distribution.", ans: "<table><tr><th>Feature</th><th>Master Keys</th><th>Session Keys</th></tr><tr><td><strong>Lifespan</strong></td><td>Long-term[cite: 7].</td><td>Temporary (used for one session)[cite: 7].</td></tr><tr><td><strong>Purpose</strong></td><td>Used to securely encrypt and distribute session keys[cite: 7].</td><td>Used to encrypt the actual data/communication[cite: 7].</td></tr><tr><td><strong>Protection</strong></td><td>Non-cryptographic protection (physical/administrative) to prevent an encryption loop[cite: 7].</td><td>Cryptographic protection (encrypted by master/public keys)[cite: 7].</td></tr></table>" }
+                ]
+            },
+            // ================== SET 3 ==================
+            {
+                mcq: [
+                    { q: "What does 'Key Usage' in an X.509 v3 extension indicate?", options: ["A) The period of use of the private key", "B) A restriction on the purposes for which the public key may be used", "C) The directory attributes of the subject", "D) The maximum length of the cert path"], ans: "B", exp: "Key usage indicates a restriction imposed as to the purposes for which the certified public key may be used (e.g., digital signature, key encryption)[cite: 7]." },
+                    { q: "Which tool embeds data during MP3 encoding?", options: ["A) MP3Stego", "B) SilentEye", "C) AudioStego", "D) DeepSound"], ans: "A", exp: "MP3Stego embeds data during MP3 encoding[cite: 4]." },
+                    { q: "In the RSA algorithm, what is the role of the exponent 'd'?", options: ["A) It is the public exponent", "B) It is the private exponent used for signing and decryption", "C) It is the modulus", "D) It is the hash value"], ans: "B", exp: "The private key consists of {n, d}, where 'd' is the private exponent used to decrypt or sign[cite: 8]." },
+                    { q: "What is the primary difference between a Blind and Non-Blind watermarking detection approach?", options: ["A) Blind requires the original signal, Non-Blind does not", "B) Blind does not require the original signal, Non-Blind does", "C) Blind is in the frequency domain, Non-Blind is in the time domain", "D) Blind is for text, Non-Blind is for video"], ans: "B", exp: "Blind watermarking needs no original signal (suitable for real-time), while Non-Blind requires the original signal for high accuracy[cite: 2]." },
+                    { q: "Which audio steganography technique adds data below the noise floor using a spreading code?", options: ["A) LSB", "B) Phase Coding", "C) Spread Spectrum", "D) Echo Hiding"], ans: "C", exp: "Spread Spectrum modulates bits using DSSS/FHSS and adds the spread-modulated signal below the noise floor[cite: 4]." },
+                    { q: "Which X.509 extension handles alternative names like email or EDI?", options: ["A) Key usage", "B) Subject alternative name", "C) Basic constraints", "D) Policy mappings"], ans: "B", exp: "Subject alternative name contains alternative names (like email, EDI) for supporting certain applications[cite: 7]." },
+                    { q: "What characterizes the 'Informed Watermarking' host requirement model?", options: ["A) It ignores the host signal properties", "B) It utilizes knowledge of host signal characteristics (e.g., psychoacoustic model) to optimize placement", "C) It uses a secret key to inform the sender", "D) It requires the original audio file during detection"], ans: "B", exp: "Informed Watermarking utilizes knowledge of the host signal characteristics to optimize watermark placement[cite: 2]." },
+                    { q: "Which text stego method involves 'Acronyms, initialisms, and first-letter encoding'?", options: ["A) Format-based", "B) Statistical", "C) Linguistic", "D) Whitespace"], ans: "C", exp: "Linguistic methods include syntactic, semantic, and acronyms/first-letter encoding[cite: 3]." },
+                    { q: "What is the primary purpose of Digital Rights Management (DRM) in steganography?", options: ["A) To scramble video frames", "B) To secretly exchange messages between spies", "C) To protect intellectual property by embedding licenses or tracing unauthorized sharing", "D) To compress MP3 files"], ans: "C", exp: "DRM protects intellectual property by controlling access and embedding tracing information (like watermarks)[cite: 4]." },
+                    { q: "What happens if a hash function lacks 'Second Preimage Resistance'?", options: ["A) Attackers can easily read the plaintext", "B) Attackers can find a different input that maps to the same hash as a given input", "C) The digital certificate expires immediately", "D) The CA cannot sign the hash"], ans: "B", exp: "Second Preimage Resistance means you can’t find a different input with the same hash as a given input[cite: 8]." },
+                    { q: "Which text steganography tool is GUI-based specifically for format-based text hiding?", options: ["A) Texto", "B) SpamMimic", "C) SNOW", "D) StegCloak"], ans: "A", exp: "Texto is a GUI tool for format-based text hiding[cite: 3]." },
+                    { q: "Which audio property is manipulated when changing the least significant bit of an 8-bit audio sample?", options: ["A) Amplitude/Value", "B) Phase", "C) Frequency hopping", "D) Echo delay"], ans: "A", exp: "LSB Coding replaces the least significant bit of the amplitude sample (e.g., 10011101 to 10011100)[cite: 4]." },
+                    { q: "What is a major limitation of text steganography?", options: ["A) Requires massive processing power", "B) Highly visible to the human eye", "C) Easy to destroy if retyped or reformatted", "D) Cannot be transmitted over plain-text channels"], ans: "C", exp: "Text steganography is easily destroyed if the text is retyped/reformatted and has limited capacity[cite: 3]." },
+                    { q: "Which video steganography technique segments bit-planes based on noise-like patterns?", options: ["A) LSB", "B) DCT", "C) BPCS", "D) Motion Vector"], ans: "C", exp: "BPCS (Bit-Plane Complexity Segmentation) segments bit-planes based on complexity (noise-like patterns)[cite: 4]." },
+                    { q: "If a sender wants to authenticate a message without encrypting it, what should they send?", options: ["A) Ciphertext only", "B) Message + Digital Signature", "C) Message + Encrypted Session Key", "D) Encrypted Message + Digital Signature"], ans: "B", exp: "Process C: The message is sent with a digital signature but not encrypted. This confirms sender and integrity, but content remains visible[cite: 8]." },
+                    { q: "Which cryptographic property is defined as 'Can't reverse a hash'?", options: ["A) Preimage Resistance", "B) Collision Resistance", "C) Confidentiality", "D) Master Keying"], ans: "A", exp: "Preimage Resistance = Can’t reverse a hash[cite: 8]." },
+                    { q: "What does the birthday paradox demonstrate in hashing?", options: ["A) Passwords must be longer than 8 characters", "B) For an m-bit hash, generating 2^(m/2) random inputs gives a high chance of a collision", "C) Hashes are entirely unbreakable", "D) Salts must be reused every year"], ans: "B", exp: "The birthday paradox shows that for an m-bit hash, generating 2^(m/2) random inputs gives a high chance of a collision[cite: 8]." },
+                    { q: "In image steganography, what is 'Perceptual Transparency'?", options: ["A) The amount of bits hidden", "B) The ability to survive compression", "C) The concept based on properties of the human visual system (invisibility)", "D) The ability to detect steganography"], ans: "C", exp: "Invisibility (Perceptual Transparency) is based on the properties of the human visual system[cite: 5]." },
+                    { q: "What type of attack involves picking values at random until a hash collision occurs, depending only on bit length?", options: ["A) Cryptanalysis", "B) Brute-Force Attack", "C) Man-in-the-Middle Attack", "D) Denial of Service"], ans: "B", exp: "A Brute-Force Attack on hashes picks values at random until a collision occurs, depending only on bit length[cite: 8]." },
+                    { q: "Which of the following is NOT a type of digital certificate?", options: ["A) SSL/TLS Certificate", "B) Code Signing Certificate", "C) Spread Spectrum Certificate", "D) Client Certificate"], ans: "C", exp: "Spread Spectrum is an audio stego technique, not a digital certificate[cite: 4, 8]." },
+                    { q: "How does 'Policy Mappings' function in an X.509 certificate?", options: ["A) Maps IP addresses to domain names", "B) Allows an issuing CA to indicate that its policies are equivalent to another policy in the subject CA's domain", "C) Revokes the certificate", "D) Authenticates the user's password"], ans: "B", exp: "Policy mappings allow an issuing CA to indicate that one or more of that issuer’s policies are equivalent to another policy[cite: 7]." },
+                    { q: "What is an advantage of Frequency-Domain Watermarking over Time-Domain Watermarking?", options: ["A) Lower computational cost", "B) Better robustness", "C) Simpler embedding", "D) No transforms required"], ans: "B", exp: "Frequency-Domain uses transforms and provides better robustness, despite higher computational costs[cite: 2]." },
+                    { q: "What is the primary role of a 'nonce' (N1, N2) in key distribution?", options: ["A) To encrypt the master key", "B) To prevent replay attacks", "C) To generate the MAC", "D) To format the text"], ans: "B", exp: "Nonces (N1, N2) prevent replay attacks[cite: 7]." },
+                    { q: "Which tool uses zero-width characters for steganography?", options: ["A) StegCloak", "B) Steghide", "C) SilentEye", "D) DeepSound"], ans: "A", exp: "Unicode Steganography / StegCloak uses zero-width characters[cite: 3]." },
+                    { q: "If A wants to securely send a session key (K_s) to B using public-key encryption, what should A do?", options: ["A) Encrypt K_s with A's private key", "B) Encrypt K_s with B's private key", "C) Encrypt K_s with B's public key", "D) Encrypt K_s with A's public key"], ans: "C", exp: "A encrypts the temporary session key (K_s) using B's public key. Only B's private key can unlock this message[cite: 7]." },
+                    { q: "Which of the following is a limitation of visual cryptography?", options: ["A) Requires complex software to decrypt", "B) Basic systems only work in black and white", "C) Not useful for CAPTCHAs", "D) Cannot be split into shares"], ans: "B", exp: "Most basic visual cryptography systems work only in black and white[cite: 6]." },
+                    { q: "Which image format is lossy and better suited for Transform Domain techniques rather than LSB?", options: ["A) BMP", "B) PNG", "C) GIF", "D) JPEG"], ans: "D", exp: "JPEG is lossy and suitable for DCT / transform domain techniques[cite: 5]." },
+                    { q: "What is the term for a named set of rules indicating the applicability of a certificate?", options: ["A) Basic constraints", "B) Certificate policy", "C) Key usage", "D) Private-key usage period"], ans: "B", exp: "A certificate policy is a named set of rules indicating applicability[cite: 7]." },
+                    { q: "Which audio stego technique distributes the hidden signal over a wide frequency band mimicking noise?", options: ["A) Echo Hiding", "B) Phase Coding", "C) Spread Spectrum", "D) LSB"], ans: "C", exp: "Spread Spectrum distributes the hidden signal over a wide frequency band, mimicking noise[cite: 4]." },
+                    { q: "In text steganography, what does measuring 'Transparency' refer to?", options: ["A) How fast the algorithm runs", "B) The amount of payload hidden", "C) How invisible the changes are to the reader", "D) How hard it is to tamper with"], ans: "C", exp: "Transparency refers to invisibility/how natural it looks, which should be High[cite: 3]." }
+                ],
+                subj: [
+                    { q: "Outline the step-by-step process of signing and verifying a Digital Signature.", ans: "<strong>Signing:</strong><br>1. The sender hashes the message to produce a fixed-length digest[cite: 8].<br>2. The sender encrypts the hash using their private key, creating the digital signature[cite: 8].<br>3. The sender transmits both the message and the signature to the receiver[cite: 8].<br><br><strong>Verifying:</strong><br>1. The receiver hashes the received message using the same hash function[cite: 8].<br>2. The receiver decrypts the signature using the sender's public key to reveal the original hash[cite: 8].<br>3. If the computed hash matches the decrypted hash, the signature is valid[cite: 8]." },
+                    { q: "Explain the concepts of Public Key and Private Key in Asymmetric Cryptography, and state how they solve the key distribution problem found in Symmetric Cryptography.", ans: "<p><strong>Asymmetric Cryptography</strong> uses a key pair: a Public Key (shared openly) and a Private Key (kept secret by the owner). A message encrypted with a Public Key can only be decrypted by the corresponding Private Key[cite: 8].</p><p><strong>Solving Key Distribution:</strong> In symmetric cryptography, sharing the single secret key securely is difficult, and N hosts require N(N-1)/2 keys[cite: 7]. Asymmetric cryptography solves this because the public key can be openly distributed (e.g., via a directory or digital certificate). The sender simply encrypts the session key with the receiver's public key, ensuring only the receiver's private key can read it, completely avoiding the need to securely transmit a shared secret beforehand[cite: 7].</p>" },
+                    { q: "Case Study: A company wants to embed hidden copyright data into their audio files but worries that compression algorithms (like MP3) will destroy the data. Suggest a suitable Audio Steganography technique, explain how it works, and contrast it with LSB.", ans: "<strong>Suggested Technique:</strong> Spread Spectrum (SS)[cite: 4].<br><strong>How it works:</strong> SS distributes the hidden signal over a wide frequency band, mimicking natural background noise (e.g., using DSSS with a pseudo-random noise sequence). It is highly robust against compression and filtering[cite: 4].<br><strong>Contrast with LSB:</strong> Least Significant Bit (LSB) coding is very simple and has high capacity, but it is highly vulnerable to compression and signal processing, making it a bad choice for MP3 files[cite: 4]." },
+                    { q: "Discuss what a password salt is and why a 'Short salt' is considered a security mistake.", ans: "<strong>What is a salt:</strong> A salt is a random character string added to a password before it is hashed. It solves the hash collision problem by ensuring identical passwords yield different hashes if their salts differ[cite: 8].<br><strong>Why 'Short salt' is a mistake:</strong> If a salt is too short, the number of possible salt combinations is small. Attackers can simply generate all combinations of characters for that short length, pair them with common dictionary passwords, and brute-force the user's password relatively easily[cite: 8]." }
+                ]
+            },
+            // ================== SET 4 ==================
+            {
+                mcq: [
+                    { q: "In Key Distribution, what is a KDC?", options: ["A) Key Decryption Certificate", "B) Key Distribution Center", "C) Known Data Cipher", "D) Key Digital Code"], ans: "B", exp: "A KDC is a Key Distribution Center that shares a secret master key with each user[cite: 7]." },
+                    { q: "Which hash algorithm design does SHA-3 use?", options: ["A) Merkle-Damgard", "B) Sponge (Keccak)", "C) MD5", "D) Block cipher chaining"], ans: "B", exp: "SHA-3 uses the Sponge (Keccak) design[cite: 8]." },
+                    { q: "What is the primary vulnerability of word-shift coding in text steganography?", options: ["A) It requires a complex GUI", "B) It is easily destroyed if the text is reformatted or retyped", "C) It uses zero-width characters", "D) It requires audio files"], ans: "B", exp: "Format-based text stego is easy to destroy if retyped or reformatted[cite: 3]." },
+                    { q: "In RSA, if the message is 'm' and the public key is {n, e}, how is the encrypted ciphertext 'c' calculated? (Conceptual)", options: ["A) c = m * e (mod n)", "B) c = m^e (mod n)", "C) c = m^d (mod n)", "D) c = e^m (mod n)"], ans: "B", exp: "In RSA, encryption (or verifying a signature) involves raising to the power of 'e' modulo 'n': s^e (mod n)[cite: 8]." },
+                    { q: "What happens during 'Challenge (A -> B)' in an authentication protocol?", options: ["A) A sends a new nonce N2 encrypted with the session key K_s", "B) B sends A's ID", "C) A sends the master key", "D) B calculates the hash of the certificate"], ans: "A", exp: "A sends E(K_s, N2) (a new nonce N2 encrypted with K_s) as a challenge[cite: 7]." },
+                    { q: "Which tool uses Markov chains or grammar models to generate stego text?", options: ["A) SNOW", "B) Nicetext", "C) StegExpose", "D) OpenStego"], ans: "B", exp: "Nicetext generates natural-looking stego text using grammar models[cite: 3]." },
+                    { q: "What is 'Phase Coding' in audio steganography?", options: ["A) Modifying motion vectors", "B) Modifying the phase of discrete audio segments using a reference phase", "C) Adding short echoes", "D) Distributing across the spectrum"], ans: "B", exp: "Phase coding modifies the phase components of discrete audio segments[cite: 4]." },
+                    { q: "Which of the following is NOT an advantage of text steganography?", options: ["A) Simple and resource-light", "B) Works in plain-text channels", "C) Extremely high data capacity", "D) Harder to detect without forensic analysis"], ans: "C", exp: "Text steganography has limited data capacity; it does NOT have extremely high capacity[cite: 3]." },
+                    { q: "What is the role of the 'Validity Period' in a Digital Certificate?", options: ["A) Identifies the public key", "B) Sets the start and expiry dates of the certificate", "C) Determines the algorithm used", "D) Provides the CA's signature"], ans: "B", exp: "The Validity Period contains the start and expiry dates[cite: 8]." },
+                    { q: "Which video steganography technique modifies data in compressed video formats like MPEG?", options: ["A) LSB in Frames", "B) BPCS", "C) Motion Vector Manipulation", "D) DeepSound"], ans: "C", exp: "Motion Vector Manipulation modifies vectors in compressed videos like MPEG[cite: 4]." },
+                    { q: "Why is 'Salt reuse' a dangerous mistake in cryptography?", options: ["A) It prevents the user from logging in", "B) It makes the salt useless, allowing attackers to guess it and brute-force passwords easily", "C) It changes the hashing algorithm to MD5", "D) It encrypts the master key"], ans: "B", exp: "Salt reuse makes the salt useless. Users with the same password have the same hash, allowing easy brute-forcing[cite: 8]." },
+                    { q: "What is the purpose of 'Extensions' in an X.509 version 3 certificate?", options: ["A) To replace the public key", "B) To provide a more flexible approach for adding optional fields like policies and constraints", "C) To encrypt the payload", "D) To store audio steganography"], ans: "B", exp: "Version 3 includes optional extensions (Key/Policy, Subject/Issuer attributes, Constraints) for flexibility[cite: 7]." },
+                    { q: "What does 'Source repudiation' mean in message authentication?", options: ["A) Denial of receipt of message by destination", "B) Delay or replay of messages", "C) Denial of transmission of message by source", "D) Insertion of fraudulent messages"], ans: "C", exp: "Source repudiation is the denial of transmission of a message by the source[cite: 8]." },
+                    { q: "Which of the following represents a 'Semantic method' in text steganography?", options: ["A) Rearranging sentence structure", "B) Using synonyms and paraphrases", "C) Shifting words horizontally", "D) Encoding data in tabs"], ans: "B", exp: "Semantic methods use synonyms and paraphrases[cite: 3]." },
+                    { q: "If Alice wants to send a secure, confidential message to Bob using public-key encryption, whose key should she use to encrypt the message?", options: ["A) Alice's Private Key", "B) Alice's Public Key", "C) Bob's Private Key", "D) Bob's Public Key"], ans: "D", exp: "To ensure confidentiality, Alice encrypts the message with Bob's Public Key so only Bob's Private Key can decrypt it[cite: 8]." },
+                    { q: "Which steganography technique is highly robust against compression and filtering but has a lower data capacity?", options: ["A) LSB", "B) Spread Spectrum", "C) White space manipulation", "D) BMP embedding"], ans: "B", exp: "Spread Spectrum is highly robust against compression and attacks but has lower data capacity[cite: 4]." },
+                    { q: "What is 'StegCloak' used for?", options: ["A) Image watermarking", "B) Audio spread spectrum", "C) Unicode Text Steganography using zero-width characters", "D) Generating RSA keys"], ans: "C", exp: "StegCloak uses zero-width characters for Unicode Steganography[cite: 3]." },
+                    { q: "Which property is described as: 'If you can’t find a second input with the same hash, you certainly can’t reverse the hash to the original input'?", options: ["A) Second Preimage Resistance implies Preimage Resistance", "B) Collision Resistance implies Second Preimage Resistance", "C) One-way property implies Collision Resistance", "D) Masking effect implies Phase Insensitivity"], ans: "A", exp: "Second Preimage Resistance implies Preimage Resistance[cite: 8]." },
+                    { q: "In X.509, what does the 'Subject Key Identifier' extension do?", options: ["A) Restricts key usage", "B) Identifies the public key being certified, useful for key pair updating", "C) Specifies a policy mapping", "D) Sets the validity period"], ans: "B", exp: "The Subject Key Identifier identifies the public key being certified and is useful for subject key pair updating[cite: 7]." },
+                    { q: "What is the main advantage of LSB coding in audio steganography?", options: ["A) Robustness to MP3 compression", "B) High capacity (many bits per second) and simple implementation", "C) It uses FHSS", "D) It requires a KDC"], ans: "B", exp: "LSB has high capacity, is simple to implement, and has no noticeable distortion in clean audio[cite: 4]." },
+                    { q: "What forms the 'Chain of Trust' in PKI?", options: ["A) MAC -> Hash -> Payload", "B) Root CA -> Intermediate CA -> End Entity", "C) Public Key -> Private Key -> Session Key", "D) Encode -> Transmit -> Decode"], ans: "B", exp: "The Chain of Trust is Root CA -> Intermediate CA -> End Entity[cite: 8]." },
+                    { q: "Which image format is lossy, making it unsuitable for LSB but suitable for DCT?", options: ["A) BMP", "B) PNG", "C) GIF", "D) JPEG"], ans: "D", exp: "JPEG is a lossy format, suitable for DCT techniques rather than LSB[cite: 5]." },
+                    { q: "What does 'EV Certificate' stand for?", options: ["A) Encryption Validation", "B) Extended Validation", "C) Entity Verification", "D) Electronic Voucher"], ans: "B", exp: "EV stands for Extended Validation Certificate, the highest level of validation[cite: 8]." },
+                    { q: "Which attack finds two different messages with the same hash without brute-forcing the entire 2^256 space?", options: ["A) Man-in-the-middle", "B) Traffic analysis", "C) Yuval Attack (Birthday Attack)", "D) DSSS Attack"], ans: "C", exp: "The Yuval Attack (Birthday Attack) exploits the birthday paradox to find collisions much faster than brute force[cite: 8]." },
+                    { q: "What is the difference between Direct Sequence (DSSS) and Frequency Hopping (FHSS) in Spread Spectrum?", options: ["A) DSSS uses echoes, FHSS uses phase", "B) DSSS modulates with a PN sequence; FHSS hops carrier frequencies", "C) DSSS is for video, FHSS is for text", "D) DSSS requires a public key, FHSS requires a private key"], ans: "B", exp: "DSSS is modulated with a PN sequence. FHSS carrier frequency hops among many frequencies[cite: 4]." },
+                    { q: "How does 'Line-shift coding' hide data?", options: ["A) By bolding letters", "B) By horizontal shifting of words", "C) By vertical shifting of text lines", "D) By adding tabs"], ans: "C", exp: "Line-shift coding involves the vertical shifting of text lines[cite: 3]." },
+                    { q: "Which entity issues X.509 Digital Certificates?", options: ["A) KDC", "B) CA (Certificate Authority)", "C) PKI Router", "D) Subject"], ans: "B", exp: "A Certificate Authority (CA) issues digital certificates[cite: 8]." },
+                    { q: "Which text stego category uses 'Markov chains'?", options: ["A) Format-based", "B) Linguistic", "C) Random and Statistical Generation", "D) Spectral"], ans: "C", exp: "Random and Statistical Generation methods use Markov chains to generate cover text[cite: 3]." },
+                    { q: "Why is an uncompressed WAV file preferred for LSB audio steganography?", options: ["A) It naturally encrypts data", "B) It retains high quality, ensuring the LSB modifications are precise and not lost", "C) It uses DWT", "D) It compresses the audio to save space"], ans: "B", exp: "WAV is uncompressed, retains high quality, and is ideal for robust and precise LSB data embedding[cite: 4]." },
+                    { q: "In steganography effectiveness, which parameters should be HIGH?", options: ["A) Payload, Transparency, Robustness, Tamper Protection", "B) Computation, Distortion, Noise", "C) Keys, Nonces, Salts", "D) Formats, Linguistics, Semantics"], ans: "A", exp: "Payload, Transparency, Robustness, and Tamper Protection should be High; Computation should be Low[cite: 3]." }
+                ],
+                subj: [
+                    { q: "Case Study: An attacker attempts to forge a digitally signed contract using a Yuval (Birthday) attack. Explain how this attack works based on hash collisions and how it can be mitigated.", ans: "<strong>How it works:</strong> The attacker exploits the birthday paradox to find two different messages (one harmless, one malicious) that produce the exact same hash[cite: 8]. The attacker gets the sender to sign the harmless message. Because the hash is identical, the attacker attaches that valid signature to the malicious message, successfully forging it[cite: 8].<br><br><strong>Mitigation:</strong> Use longer, more secure hash functions (like SHA-256 or SHA-3) which make finding collisions computationally infeasible, and include unique data (like nonces) in the signed payload[cite: 8]." },
+                    { q: "Discuss the differences between the four Format-Based methods in Text Steganography.", ans: "<strong>1. Line-shift coding:</strong> Conceals data by vertically shifting text lines[cite: 3].<br><strong>2. Word-shift coding:</strong> Conceals data by horizontally shifting words[cite: 3].<br><strong>3. White space manipulation:</strong> Conceals data by altering the number of spaces or tabs at the ends of lines (e.g., using SNOW)[cite: 3].<br><strong>4. Font formatting:</strong> Conceals data by altering font attributes, such as making specific characters bold or italic[cite: 3]." },
+                    { q: "Explain the process of Public-Key Distribution using a Certificate Authority (CA). How does a Digital Certificate work?", ans: "<strong>Process & How it works:</strong> A user's public key needs to be distributed securely to avoid impersonation. A Certificate Authority (CA) acts as a trusted third party. The CA issues a Digital Certificate that binds the user's identity (Subject) to their Public Key[cite: 8]. The CA signs this certificate with the CA's private key[cite: 8]. When someone receives the certificate, they use the CA's known public key to verify the signature. If it is valid, they trust that the public key belongs to the Subject[cite: 8]." },
+                    { q: "Compare LSB (Least Significant Bit) and Spread Spectrum (SS) techniques in Audio Steganography.", ans: "<table><tr><th>Feature</th><th>LSB (Least Significant Bit)</th><th>Spread Spectrum (SS)</th></tr><tr><td><strong>Method</strong></td><td>Replaces the least significant bits of audio samples with secret data[cite: 4].</td><td>Distributes the hidden signal over a wide frequency band, mimicking noise[cite: 4].</td></tr><tr><td><strong>Capacity</strong></td><td>High capacity (many bits per second)[cite: 4].</td><td>Lower data capacity[cite: 4].</td></tr><tr><td><strong>Robustness</strong></td><td>Highly vulnerable to compression (like MP3) and noise[cite: 4].</td><td>Highly robust against compression, filtering, and noise[cite: 4].</td></tr></table>" }
+                ]
+            },
+            // ================== SET 5 ==================
+            {
+                mcq: [
+                    { q: "What is the primary function of a cryptographic 'Salt'?", options: ["A) To encrypt the payload", "B) To solve the hash collision problem by ensuring unique hashes for identical passwords", "C) To sign digital certificates", "D) To act as a session key"], ans: "B", exp: "Salts solve the collision problem that hash functions suffer from[cite: 8]." },
+                    { q: "Which attack involves intercepting a message and its hash, altering the message, generating a new hash, and sending it to the receiver?", options: ["A) Yuval Attack", "B) Man-in-the-Middle Attack", "C) Dictionary Attack", "D) Spread Spectrum Attack"], ans: "B", exp: "In a Man-in-the-Middle attack, the adversary intercepts, alters data, makes a new hash, and sends it to the receiver[cite: 8]." },
+                    { q: "Which tool uses spaces and tabs to hide data in text files?", options: ["A) SNOW", "B) SpamMimic", "C) DeepStego", "D) Steghide"], ans: "A", exp: "SNOW (Steganographic Nature Of Whitespace) hides data in spaces and tabs[cite: 3]." },
+                    { q: "In the context of X.509, what is a CRL?", options: ["A) Certificate Root List", "B) Certificate Revocation List", "C) Cryptographic RSA Lock", "D) Central Router Link"], ans: "B", exp: "CRL stands for Certificate Revocation List, which contains revoked but not expired certificates[cite: 7]." },
+                    { q: "What is the advantage of using WAV format for audio steganography?", options: ["A) It is highly compressed", "B) It is uncompressed and retains high quality, ideal for robust LSB embedding", "C) It uses DCT coefficients", "D) It requires a CA"], ans: "B", exp: "WAV is uncompressed, retains high quality, and is ideal for robust and precise LSB embedding[cite: 4]." },
+                    { q: "Which property implies that if a hash is collision-resistant, it automatically resists second preimage attacks?", options: ["A) Preimage Resistance", "B) Second Preimage Resistance", "C) Collision Resistance", "D) Salt variation"], ans: "C", exp: "Collision Resistance -> Second Preimage Resistance. If it's collision-resistant, it automatically resists second preimage attacks[cite: 8]." },
+                    { q: "What does 'BPCS' do in video steganography?", options: ["A) Embeds data in motion vectors", "B) Segments bit-planes based on complexity (noise-like patterns) to store data", "C) Replaces audio LSBs", "D) Uses Markov chains"], ans: "B", exp: "BPCS (Bit-Plane Complexity Segmentation) segments bit-planes based on complexity, embedding data in high-complexity regions[cite: 4]." },
+                    { q: "What is 'Caching' in public-key distribution?", options: ["A) Storing a user's private key", "B) Saving another user's public key for future use to reduce directory queries", "C) Buffering video frames", "D) Reusing a salt"], ans: "B", exp: "Caching means A and B can save the other's public key for future use[cite: 7]." },
+                    { q: "Which text stego method uses synonyms and paraphrases?", options: ["A) Syntactic methods", "B) Semantic methods", "C) Word-shift coding", "D) Acronyms"], ans: "B", exp: "Semantic methods use synonyms and paraphrases[cite: 3]." },
+                    { q: "How many keys are needed for symmetric communication between 10 hosts?", options: ["A) 10", "B) 20", "C) 45", "D) 100"], ans: "C", exp: "N(N-1)/2. So 10(9)/2 = 45 keys[cite: 7]." },
+                    { q: "What is the primary difference between Steganography and Cryptography?", options: ["A) Cryptography hides the existence, Steganography hides the meaning", "B) Steganography hides the existence, Cryptography hides the meaning", "C) Both hide existence", "D) Both hide meaning"], ans: "B", exp: "Steganography hides the existence of the message, whereas cryptography hides the meaning[cite: 5]." },
+                    { q: "Which text steganography tool disguises the hidden message as a spam email?", options: ["A) Nicetext", "B) Texto", "C) SpamMimic", "D) StegCloak"], ans: "C", exp: "SpamMimic disguises a message as a spam email[cite: 3]." },
+                    { q: "Which video steganography method applies a Discrete Wavelet Transform (DWT)?", options: ["A) LSB", "B) BPCS", "C) Transform Domain Embedding", "D) Motion Vector Manipulation"], ans: "C", exp: "Transform Domain Embedding applies DCT or DWT to embed data in frequency coefficients[cite: 4]." },
+                    { q: "In the RSA algorithm, what does the exponent 'e' represent?", options: ["A) The private key component", "B) The public key component used for encryption or verifying", "C) The prime number", "D) The hash result"], ans: "B", exp: "The public key consists of {n, e}, where 'e' is used for encryption/verification[cite: 8]." },
+                    { q: "What is a 'nonce' (N1, N2) used for?", options: ["A) To prevent replay attacks", "B) To generate salts", "C) To compress video frames", "D) To map certificate policies"], ans: "A", exp: "Nonces prevent replay attacks by ensuring message freshness[cite: 7]." },
+                    { q: "Which of the following describes 'Direct Sequence Spread Spectrum (DSSS)'?", options: ["A) The carrier frequency hops among many frequencies", "B) Secret data is modulated with a pseudo-random noise (PN) sequence", "C) It replaces the LSB of a WAV file", "D) It shifts text lines vertically"], ans: "B", exp: "In DSSS, secret data is modulated with a pseudo-random noise (PN) sequence[cite: 4]." },
+                    { q: "Which image format is lossless and supports transparency, making it suitable for stego?", options: ["A) JPEG", "B) GIF", "C) PNG", "D) BMP"], ans: "C", exp: "PNG is lossless and supports transparency[cite: 5]." },
+                    { q: "Why would a CA revoke a certificate?", options: ["A) The user's public key was shared", "B) The user's private key is assumed to be compromised", "C) The user cleared their cache", "D) The network bandwidth is low"], ans: "B", exp: "A certificate may be revoked if the user's private key is compromised[cite: 7]." },
+                    { q: "What does 'Source repudiation' mean?", options: ["A) Denial of receipt of message", "B) Denial of transmission of message by source", "C) Replay of message", "D) Modification of message"], ans: "B", exp: "Source repudiation is the denial of transmission of a message by the source[cite: 8]." },
+                    { q: "Which tool uses zero-width characters for text steganography?", options: ["A) SNOW", "B) StegCloak", "C) SpamMimic", "D) Steghide"], ans: "B", exp: "Unicode Steganography / StegCloak uses zero-width characters[cite: 3]." },
+                    { q: "In an X.509 certificate, what is the 'Subject'?", options: ["A) The CA issuing the certificate", "B) The entity (person, website) that owns the public key", "C) The digital signature", "D) The hashing algorithm"], ans: "B", exp: "The Subject is the entity (person, website, or organization) that owns the public key[cite: 8]." },
+                    { q: "What property of the Human Auditory System (HAS) makes 'Phase Coding' possible?", options: ["A) Masking effect", "B) High temporal resolution", "C) Insensitivity to minor phase changes", "D) Spatial redundancy"], ans: "C", exp: "The HAS is insensitive to phase changes, making it difficult for listeners to detect alterations[cite: 4]." },
+                    { q: "Which of the following is NOT an advantage of text steganography?", options: ["A) It works in plain-text channels", "B) It is simple and resource-light", "C) It has extremely high payload capacity", "D) It is harder to detect without forensic analysis"], ans: "C", exp: "Text steganography has limited data capacity[cite: 3]." },
+                    { q: "Which video steganography method modifies vectors in compressed formats?", options: ["A) LSB", "B) BPCS", "C) Motion Vector Manipulation", "D) DCT Embedding"], ans: "C", exp: "Motion Vector Manipulation alters motion vectors in compressed formats like MPEG[cite: 4]." },
+                    { q: "What is 'Authenticated Encryption' (AE)?", options: ["A) Encrypting only the MAC", "B) Systems that simultaneously protect confidentiality and authenticity", "C) Hashing a password with a salt", "D) Distributing a master key"], ans: "B", exp: "AE refers to systems that simultaneously protect confidentiality and authenticity[cite: 8]." },
+                    { q: "When evaluating steganography, what does 'Transparency' refer to?", options: ["A) The file size", "B) How invisible the changes are to a human observer", "C) The processing power required", "D) Resistance to tampering"], ans: "B", exp: "Transparency refers to the invisibility of the hidden data[cite: 3]." },
+                    { q: "Which cryptographic property means 'cannot find ANY two inputs with the same hash'?", options: ["A) Preimage Resistance", "B) Second Preimage Resistance", "C) Collision Resistance", "D) Non-repudiation"], ans: "C", exp: "Collision Resistance = Can’t find any two inputs with the same hash[cite: 8]." },
+                    { q: "What does 'EV' stand for in EV Certificate?", options: ["A) Encryption Verification", "B) Extended Validation", "C) Entity Vault", "D) Electronic Vector"], ans: "B", exp: "Extended Validation (EV) Certificate provides the highest level of validation[cite: 8]." },
+                    { q: "Which text stego method involves 'vertical shifting of text lines'?", options: ["A) Line-shift coding", "B) Word-shift coding", "C) White space manipulation", "D) Font formatting"], ans: "A", exp: "Line-shift coding is the vertical shifting of text lines[cite: 3]." },
+                    { q: "Which of the following describes 'Echo Hiding'?", options: ["A) Replacing the LSB", "B) Modifying phase components", "C) Adding short echoes at controlled delays", "D) Distributing across the spectrum"], ans: "C", exp: "Echo Hiding embeds data by introducing echoes at controlled delays and amplitudes[cite: 4]." }
+                ],
+                subj: [
+                    { q: "Discuss the process of a Digital Signature, detailing how a message is signed and how it is verified.", ans: "<strong>Signing Process:</strong><br>1. The sender applies a cryptographic hash function to the message to create a fixed-size digest[cite: 8].<br>2. The sender encrypts this hash digest using their private key. This encrypted hash is the digital signature[cite: 8].<br>3. The message and the signature are sent together[cite: 8].<br><br><strong>Verification Process:</strong><br>1. The receiver hashes the received message using the exact same hash algorithm[cite: 8].<br>2. The receiver decrypts the attached signature using the sender's public key to reveal the original hash[cite: 8].<br>3. If the newly computed hash and the decrypted hash match perfectly, the signature is verified, ensuring authenticity and integrity[cite: 8]." },
+                    { q: "Case Study: A web developer is building a user login system and plans to store passwords as plain MD5 hashes. Explain why this is a bad idea due to the hash collision problem, and explain what a 'salt' is and how it solves this problem.", ans: "<strong>The Problem:</strong> Hash functions have infinite input length but fixed output length, meaning collisions (two inputs making the same hash) are inevitable. Furthermore, without salt, attackers can use precomputed 'rainbow tables' to instantly crack common passwords[cite: 8].<br><br><strong>The Solution (Salt):</strong> A salt is a unique, random character string added to a password (e.g., at the beginning) before it is hashed[cite: 8]. Because the salt is unique for each user, even if two users have the exact same password, their final 'salted-hash' will be completely different. This nullifies precomputed tables and massively increases the search space for brute-force attacks[cite: 8]." },
+                    { q: "Compare Symmetric Key Distribution with Asymmetric Key Distribution. Explain the limitations of the symmetric approach.", ans: "<table><tr><th>Feature</th><th>Symmetric Key Distribution</th><th>Asymmetric Key Distribution</th></tr><tr><td><strong>Key Type</strong></td><td>Uses a single shared secret key[cite: 8].</td><td>Uses a Public Key and Private Key pair[cite: 8].</td></tr><tr><td><strong>Distribution Method</strong></td><td>Requires a secure channel or a KDC to share the secret key beforehand[cite: 7].</td><td>Public keys can be freely distributed via directories or Digital Certificates (CA)[cite: 7, 8].</td></tr><tr><td><strong>Scaling Limitation</strong></td><td>As endpoints grow, keys grow exponentially. N hosts require N(N-1)/2 keys[cite: 7].</td><td>Scales well; each user only needs one key pair[cite: 8].</td></tr></table>" },
+                    { q: "Explain the four Format-Based methods used in Text Steganography. If you were tasked with hiding data in a physical printed document, which one might be most suitable and why?", ans: "<strong>1. Line-shift coding:</strong> Vertical shifting of text lines[cite: 3].<br><strong>2. Word-shift coding:</strong> Horizontal shifting of words[cite: 3].<br><strong>3. White space manipulation:</strong> Altering spaces/tabs at line ends[cite: 3].<br><strong>4. Font formatting:</strong> Using subtle bold/italic styling to encode bits[cite: 3].<br><br><strong>Suitable for Print:</strong> Line-shift or Word-shift coding (or subtle font formatting) would be most suitable for a physical printed document because these rely on visual spacing/typography that survives printing, whereas trailing 'white space' characters (tabs/spaces) are invisible on physical paper and would be lost[cite: 3]." }
+                ]
+            }
+        ];
+
+        let currentSetIndex = 0;
+
+        function renderSet(index) {
+            const set = quizData[index];
+            const sectionA = document.getElementById('sectionA-container');
+            const sectionB = document.getElementById('sectionB-container');
+            
+            document.getElementById('setIndicator').innerText = `Currently viewing: Set ${index + 1} of 5`;
+
+            // Render Section A (MCQ)
+            let htmlA = '';
+            set.mcq.forEach((item, i) => {
+                const qNum = i + 1;
+                htmlA += `
+                <div class="main_box" id="q${qNum}">
+                    <div class="question">${qNum}. ${item.q}</div>
+                    <div class="container">
+                        <div class="options">`;
+                
+                item.options.forEach(opt => {
+                    const val = opt.charAt(0);
+                    htmlA += `<label class="opt" data-val="${val}"><input type="radio" name="Q${qNum}" value="${val}"> ${opt}</label>`;
+                });
+
+                htmlA += `
+                        </div>
+                        <div class="explanation" data-ans="${item.ans}"><h4>Correct Answer: ${item.ans}</h4>${item.exp}</div>
+                    </div>
+                </div>`;
+            });
+            sectionA.innerHTML = htmlA;
+
+            // Render Section B (Subjective)
+            let htmlB = '';
+            set.subj.forEach((item, i) => {
+                const qNum = i + 31;
+                const ansId = `ans-subj-${index}-${i}`;
+                htmlB += `
+                <div class="main_box">
+                    <div class="question">${qNum}. ${item.q}</div>
+                    <div class="container">
+                        <button type="button" class="toggle-btn" onclick="toggleAnswer('${ansId}')">Reveal Answer</button>
+                        <div id="${ansId}" class="sb-answer">
+                            <h4>Suggested Answer:</h4>
+                            ${item.ans}
+                        </div>
+                    </div>
+                </div>`;
+            });
+            sectionB.innerHTML = htmlB;
+
+            // Reset UI states
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').innerText = "Submit Section A";
+            document.getElementById('scoreDisplay').style.display = 'none';
+        }
+
+        function submitQuiz() {
+            if (document.activeElement && document.activeElement.blur) {
+                document.activeElement.blur();
+            }
+            
+            let score = 0;
+            let totalQuestions = 30; // 30 MCQs per set
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Section A Submitted";
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                let qDiv = document.getElementById('q' + i);
+                let explanationDiv = qDiv.querySelector('.explanation');
+                let correctVal = explanationDiv.getAttribute('data-ans');
+                
+                explanationDiv.style.display = 'block';
+
+                let selectedInput = qDiv.querySelector('input:checked');
+                let userVal = selectedInput ? selectedInput.value : null;
+
+                if (userVal === correctVal) {
+                    score++;
+                    if(selectedInput) selectedInput.parentElement.classList.add('correct-answer');
+                    explanationDiv.classList.add('correct');
+                } else {
+                    if(selectedInput) selectedInput.parentElement.classList.add('wrong-answer');
+                    let correctOpt = qDiv.querySelector(`.opt[data-val="${correctVal}"]`);
+                    if(correctOpt) correctOpt.classList.add('correct-answer');
+                    explanationDiv.classList.add('wrong');
+                }
+            }
+
+            let scoreDiv = document.getElementById('scoreDisplay');
+            scoreDiv.style.display = 'block';
+            scoreDiv.innerText = `Section A Score: ${score} / ${totalQuestions}`;
+            
+            window.scrollTo(0, 0);
+        }
+
+        function toggleAnswer(id) {
+            let el = document.getElementById(id);
+            if (el.style.display === "block") {
+                el.style.display = "none";
+            } else {
+                el.style.display = "block";
+            }
+        }
+
+        function generateNewSet() {
+            // Cycle through the 5 sets
+            currentSetIndex = (currentSetIndex + 1) % quizData.length;
+            renderSet(currentSetIndex);
+            window.scrollTo(0, 0);
+        }
+
+        // Initialize first set on load
+        window.onload = () => renderSet(currentSetIndex);
+
+    </script>
+</body>
+</html>
