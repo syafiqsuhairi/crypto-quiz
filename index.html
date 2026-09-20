@@ -94,3 +94,444 @@
         .table-wrapper {
             width: 100%;
             overflow-x: auto;
+            display: block;
+            -webkit-overflow-scrolling: touch; 
+            margin-top: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 500px; 
+            background-color: white;
+        }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; font-size: 0.95em; }
+        th { background-color: #f4f7f6; }
+
+        .btn-container { text-align: center; margin: 20px; }
+        .submit-btn, .toggle-btn, .generate-btn {
+            background-color: #27ae60;
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+            transition: all 0.3s;
+            -webkit-appearance: none;
+        }
+        .toggle-btn { background-color: #007bff; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); margin-top: 10px;}
+        .generate-btn { background-color: #8e44ad; box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3); margin-bottom: 20px; font-size: 1.2em; width: 90%; max-width: 400px;}
+        .submit-btn { width: 100%; max-width: 400px; font-size: 1.3em; padding: 16px 40px; }
+        .submit-btn:active, .toggle-btn:active, .generate-btn:active { transform: scale(0.98); }
+        .submit-btn:disabled { background-color: #95a5a6; box-shadow: none; transform: none; cursor: not-allowed; }
+        
+        .set-indicator { text-align: center; font-weight: bold; color: #8e44ad; font-size: 1.2em; margin-bottom: 10px;}
+
+        /* Toggle Switch Styling */
+        .mode-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 10px 25px 10px;
+            font-size: 1em;
+            font-weight: bold;
+            color: #2c3e50;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 54px;
+            height: 28px;
+            margin: 0 12px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #007bff; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .mode-active { color: #007bff; }
+    </style>
+</head>
+<body>
+
+    <div id="scoreDisplay" class="score-box"></div>
+
+    <h1>Cryptography & Steganography Exam Simulator</h1>
+    
+    <div class="btn-container">
+        <button type="button" class="generate-btn" onclick="nextSet()">🎲 Load Next Set</button>
+        <div id="setIndicator" class="set-indicator">Currently viewing: Set 1 of 10</div>
+    </div>
+
+    <!-- MODE TOGGLE -->
+    <div class="mode-container">
+        <span id="labelExam" class="mode-active">Exam Mode</span>
+        <label class="switch">
+            <input type="checkbox" id="modeToggle" onchange="toggleMode()">
+            <span class="slider"></span>
+        </label>
+        <span id="labelInstant">Instant Feedback Mode</span>
+    </div>
+
+    <h2>Section A: Objective Questions (40 Questions)</h2>
+    <div class="section-desc">Select the best answer. Tap "Submit Section A" at the bottom to view your score.</div>
+
+    <form id="quizForm" onsubmit="return false;">
+        <div id="sectionA-container"></div>
+        <div class="btn-container">
+            <button type="button" id="submitBtn" class="submit-btn" onclick="submitQuiz()">Submit Section A</button>
+        </div>
+    </form>
+
+    <hr style="margin: 40px 0; border: 1px solid #ccc;">
+
+    <h2>Section B: Short Answer & Case Study (All Questions)</h2>
+    <div class="section-desc">Read the scenario, formulate your answer, then tap "Reveal Answer" to check your knowledge.</div>
+    
+    <div id="sectionB-container"></div>
+
+    <script>
+        // MASTER QUESTION BANKS
+        const mcqBank = [
+
+            // =========================
+            // CHAPTER 3 - 5 QUESTIONS
+            // =========================
+            { q: "A company stores user passwords using a random value added before hashing. What is this value called?", options: ["A) Nonce", "B) Salt", "C) Session key", "D) Public key"], ans: "B", exp: "A salt is a random character string added to a password before hashing to improve password security [Chapter 3]." },
+            { q: "An attacker finds two different messages that produce the same hash value. What type of attack is this?", options: ["A) Preimage attack", "B) Collision attack", "C) Replay attack", "D) Brute-force key attack"], ans: "B", exp: "A collision attack attempts to find two different inputs that produce the same hash value [Chapter 3]." },
+            { q: "In RSA, which components form the public key?", options: ["A) {n, d}", "B) {p, q}", "C) {n, e}", "D) {e, d}"], ans: "C", exp: "The RSA public key consists of the modulus n and public exponent e [Chapter 3]." },
+            { q: "Alice wants to send a confidential message to Bob using public-key encryption. Which key should Alice use?", options: ["A) Alice's private key", "B) Alice's public key", "C) Bob's private key", "D) Bob's public key"], ans: "D", exp: "Alice encrypts the message using Bob's public key so that Bob's private key can decrypt it [Chapter 3]." },
+            { q: "A digital signature is created using which key of the sender?", options: ["A) Sender's public key", "B) Sender's private key", "C) Receiver's public key", "D) Receiver's private key"], ans: "B", exp: "The sender uses their private key to create a digital signature, while others use the sender's public key to verify it [Chapter 3]." },
+
+            // =========================
+            // CHAPTER 4 - 5 QUESTIONS
+            // =========================
+            { q: "A network has N hosts using pairwise symmetric keys. Which formula gives the number of keys required?", options: ["A) N", "B) N - 1", "C) N(N - 1)/2", "D) N² + 1"], ans: "C", exp: "Pairwise symmetric encryption requires N(N - 1)/2 keys for N hosts [Chapter 4]." },
+            { q: "A company uses a trusted server to distribute secret keys to users. What is this server called?", options: ["A) Certificate Authority", "B) Key Distribution Center", "C) Registration Authority", "D) Hash Server"], ans: "B", exp: "A Key Distribution Center (KDC) distributes keys and shares a secret master key with each user [Chapter 4]." },
+            { q: "Why is a nonce commonly used in a key distribution protocol?", options: ["A) To compress the message", "B) To increase file size", "C) To prevent replay attacks", "D) To replace the public key"], ans: "C", exp: "A nonce provides freshness and helps prevent attackers from replaying an old valid message [Chapter 4]." },
+            { q: "An organization restricts a certified public key so it can only be used for digital signatures. Which X.509 extension provides this restriction?", options: ["A) Subject Alternative Name", "B) Key Usage", "C) Validity Period", "D) Policy Mapping"], ans: "B", exp: "The Key Usage extension restricts the purposes for which a certified public key may be used [Chapter 4]." },
+            { q: "A certificate is revoked because the owner's private key is believed to have been compromised. Where can revoked certificates be listed?", options: ["A) Certificate Revocation List", "B) Session Key Table", "C) Hash Database", "D) Public Key Cache"], ans: "A", exp: "A Certificate Revocation List (CRL) contains revoked certificates that have not yet naturally expired [Chapter 4]." },
+
+            // =========================
+            // CHAPTER 5 - 5 QUESTIONS
+            // =========================
+            { q: "A secret image is divided into several image shares, and the secret becomes visible when the required shares are combined. What technique is this?", options: ["A) RSA encryption", "B) Visual cryptography", "C) Audio steganography", "D) Digital watermarking"], ans: "B", exp: "Visual cryptography divides a secret image into shares that can be combined to reveal the secret [Chapter 5]." },
+            { q: "How can a basic visual cryptography system reveal a secret image?", options: ["A) By factoring a large number", "B) By decrypting with a private key", "C) By viewing or overlaying the required shares together", "D) By calculating a SHA-256 hash"], ans: "C", exp: "Basic visual cryptography allows the secret to be revealed by combining the required shares without complex decryption [Chapter 5]." },
+            { q: "Which statement describes a limitation of many basic visual cryptography systems?", options: ["A) They require a blockchain", "B) They only work with audio", "C) They commonly use black-and-white images", "D) They cannot use image shares"], ans: "C", exp: "Many basic visual cryptography systems operate using black-and-white shares [Chapter 5]." },
+            { q: "In visual cryptography, what is a 'share'?", options: ["A) A portion of the secret representation", "B) A private RSA key", "C) A password salt", "D) A certificate authority"], ans: "A", exp: "A share is one of the pieces generated from a secret image. The required shares are combined to reveal the secret [Chapter 5]." },
+            { q: "Which situation is most suitable for visual cryptography?", options: ["A) Proving ownership of a video", "B) Splitting a secret image among several participants", "C) Compressing an audio file", "D) Generating an RSA key"], ans: "B", exp: "Visual cryptography is suitable when a secret visual message needs to be divided among multiple participants [Chapter 5]." },
+
+            // =========================
+            // CHAPTER 6 - 5 QUESTIONS
+            // =========================
+            { q: "What is the primary goal of steganography?", options: ["A) Hide the existence of information", "B) Increase encryption key size", "C) Generate digital certificates", "D) Compress files"], ans: "A", exp: "Steganography aims to hide the existence of a secret message inside a cover medium [Chapter 6]." },
+            { q: "Which comparison correctly describes cryptography and steganography?", options: ["A) Both hide the existence of information", "B) Cryptography hides meaning while steganography hides existence", "C) Cryptography hides existence while steganography hides meaning", "D) Neither provides security"], ans: "B", exp: "Cryptography hides the meaning of information, while steganography hides the existence of the message [Chapter 6]." },
+            { q: "An image appears normal but contains a secret message hidden inside its pixel values. What technique is being used?", options: ["A) Hashing", "B) Steganography", "C) Digital signature", "D) Key exchange"], ans: "B", exp: "Hiding secret information inside an ordinary-looking image is image steganography [Chapter 6]." },
+            { q: "Why are images useful as cover media for steganography?", options: ["A) They automatically encrypt hidden data", "B) Their visual redundancy allows small changes without obvious visual differences", "C) They cannot be compressed", "D) They contain public keys"], ans: "B", exp: "Visual redundancy allows small changes to pixels while keeping the image visually similar to the original [Chapter 6]." },
+            { q: "Which image format is generally better suited for basic LSB steganography because it uses lossless compression?", options: ["A) JPEG", "B) PNG", "C) MP4", "D) MP3"], ans: "B", exp: "PNG is a lossless image format and is suitable for basic LSB steganography [Chapter 6]." },
+
+            // =========================
+            // CHAPTER 7 - 5 QUESTIONS
+            // =========================
+            { q: "Which property of human hearing allows a louder sound to hide a quieter sound?", options: ["A) Phase coding", "B) Masking effect", "C) Frequency hopping", "D) Echo delay"], ans: "B", exp: "The masking effect occurs when a louder sound makes a quieter sound difficult to perceive [Chapter 7]." },
+            { q: "Which audio steganography technique hides information by changing the least significant bits of audio samples?", options: ["A) LSB Coding", "B) Echo Hiding", "C) Phase Coding", "D) Frequency Hopping"], ans: "A", exp: "LSB Coding replaces the least significant bits of audio samples with secret data [Chapter 7]." },
+            { q: "Which uncompressed audio format is commonly preferred for LSB audio steganography?", options: ["A) MP3", "B) AAC", "C) WAV", "D) FLV"], ans: "C", exp: "WAV is uncompressed, making it suitable for precise LSB data embedding [Chapter 7]." },
+            { q: "In DSSS audio steganography, what is used to spread or modulate the secret data?", options: ["A) Private RSA key", "B) Pseudo-random noise sequence", "C) Certificate chain", "D) Image pixels"], ans: "B", exp: "Direct Sequence Spread Spectrum uses a pseudo-random noise (PN) sequence to spread the secret signal [Chapter 7]." },
+            { q: "Which video steganography method modifies motion vectors in compressed video such as MPEG?", options: ["A) Motion Vector Manipulation", "B) LSB Audio Coding", "C) Phase Coding", "D) White Space Manipulation"], ans: "A", exp: "Motion Vector Manipulation hides information by modifying motion vectors in compressed video [Chapter 7]." },
+
+            // =========================
+            // CHAPTER 8 - 5 QUESTIONS
+            // =========================
+            { q: "Which text steganography method hides information by changing spaces or tabs at the ends of lines?", options: ["A) Semantic method", "B) White space manipulation", "C) Word-shift coding", "D) Phase coding"], ans: "B", exp: "White space manipulation changes spaces or tabs, often at the ends of lines, to encode hidden information [Chapter 8]." },
+            { q: "A text steganography technique horizontally shifts words to encode hidden information. What is it called?", options: ["A) Line-shift coding", "B) Word-shift coding", "C) Semantic coding", "D) Markov coding"], ans: "B", exp: "Word-shift coding hides information through horizontal shifting of words [Chapter 8]." },
+            { q: "Which text steganography technique changes the vertical position of text lines?", options: ["A) Line-shift coding", "B) Word-shift coding", "C) Semantic method", "D) Font formatting"], ans: "A", exp: "Line-shift coding hides information by vertically shifting text lines [Chapter 8]." },
+            { q: "A hidden message is created using synonyms and paraphrased sentences. Which text steganography category is being used?", options: ["A) Format-based", "B) Semantic", "C) Line-shift", "D) White-space"], ans: "B", exp: "Semantic text steganography uses synonyms and paraphrases to encode hidden information [Chapter 8]." },
+            { q: "Which tool is designed to hide information using spaces and tabs in text?", options: ["A) SNOW", "B) Steghide", "C) MP3Stego", "D) OpenStego"], ans: "A", exp: "SNOW is a text steganography tool that hides data using spaces and tabs [Chapter 8]." },
+
+            // =========================
+            // CHAPTER 9 - 5 QUESTIONS
+            // =========================
+            { q: "What is the main purpose of steganalysis?", options: ["A) To create secret messages", "B) To detect hidden information", "C) To encrypt public keys", "D) To compress multimedia files"], ans: "B", exp: "Steganalysis focuses on detecting and analyzing hidden information in multimedia or other cover media [Chapter 9]." },
+            { q: "A forensic analyst examines an image that looks normal but may contain hidden information. Which field is most relevant?", options: ["A) Steganalysis", "B) Key distribution", "C) Digital signing", "D) RSA encryption"], ans: "A", exp: "Steganalysis is used to investigate whether hidden information exists within a cover medium [Chapter 9]." },
+            { q: "Why can detecting steganography be difficult?", options: ["A) The cover file may look like a normal file", "B) The hidden data is always visible", "C) Steganography always produces encrypted text", "D) The file cannot be opened"], ans: "A", exp: "Steganography is difficult to detect because the cover medium can appear normal even though hidden information exists [Chapter 9]." },
+            { q: "Which activity is an example of steganalysis?", options: ["A) Embedding a secret message into an image", "B) Searching an image for statistical signs of hidden data", "C) Generating an RSA key pair", "D) Signing a certificate"], ans: "B", exp: "Steganalysis can examine files for statistical or structural indicators suggesting that hidden data has been embedded [Chapter 9]." },
+            { q: "An attacker hides commands inside an ordinary-looking image. What security field would defenders use to investigate this activity?", options: ["A) Steganalysis", "B) Key generation", "C) Certificate management", "D) Hash salting"], ans: "A", exp: "Steganalysis is used to detect and analyze hidden information that may be abused for malicious purposes [Chapter 9]." },
+
+            // =========================
+            // CHAPTER 10 - 5 QUESTIONS
+            // =========================
+            { q: "Why is frequency-domain watermarking often preferred when robustness is important?", options: ["A) It requires no computation", "B) It provides better robustness against common modifications", "C) It always produces larger files", "D) It removes the need for a watermark"], ans: "B", exp: "Frequency-domain watermarking generally provides better robustness, although it can require higher computational cost [Chapter 10]." },
+            { q: "What is the main difference between blind and non-blind watermark detection?", options: ["A) Blind detection requires the original signal", "B) Non-blind detection never uses a watermark", "C) Blind detection does not require the original signal", "D) Both require the original signal"], ans: "C", exp: "Blind watermark detection does not require the original signal, while non-blind detection uses the original signal during detection [Chapter 10]." },
+            { q: "An organization embeds a copyright mark into a video so that ownership can be established later. What technique is being used?", options: ["A) Hashing", "B) Digital watermarking", "C) Key distribution", "D) Steganalysis"], ans: "B", exp: "Digital watermarking embeds ownership or identification information into digital content such as images, audio, and video [Chapter 10]." },
+            { q: "A watermark must survive compression, resizing, and other common modifications to a video. What characteristic is most important?", options: ["A) Robustness", "B) Payload size only", "C) Encryption speed", "D) Key length"], ans: "A", exp: "Robustness allows a watermark to remain detectable after common modifications such as compression and resizing [Chapter 10]." },
+            { q: "What does informed watermarking use to improve watermark placement?", options: ["A) Knowledge of the host signal characteristics", "B) Only the receiver's password", "C) A certificate revocation list", "D) A KDC master key"], ans: "A", exp: "Informed watermarking uses knowledge of host signal characteristics to optimize where the watermark is placed [Chapter 10]." }
+        ];
+
+        const subjBank = [
+            // =========================
+            // CHAPTER 3 - MAIN FOCUS
+            // =========================
+            { q: "Explain what a salt is, why it is used when storing passwords, and where it is implemented.", ans: "<strong>What is a salt?</strong><br>A salt is a random value added to a password before the password is hashed.<br><br><strong>Why use it?</strong><br>1. It makes identical passwords produce different hash values.<br>2. It makes precomputed tables such as rainbow tables less useful.<br>3. It makes password cracking harder.<br><br><strong>Where is it implemented?</strong><br>The salt is generated when the password is created or changed, used before hashing, and normally stored with the password hash so it can be used again during verification [Chapter 3]." },
+
+            { q: "Discuss why a digital signature is needed. What security properties does it provide?", ans: "<strong>Purpose of a digital signature:</strong><br>1. <strong>Authentication:</strong> helps verify who signed the message.<br>2. <strong>Integrity:</strong> helps show that the message was not changed after signing.<br>3. <strong>Non-repudiation:</strong> provides evidence that the signer approved the signed data, subject to the trust model and key protection.<br><br>A digital signature is especially useful for contracts, documents, and important transactions [Chapter 3]." },
+
+            { q: "Explain the step-by-step process of creating and verifying a digital signature.", ans: "<strong>Signing:</strong><br>1. The sender creates a hash of the message.<br>2. The sender uses their <strong>private key</strong> to create the digital signature from the hash.<br>3. The sender sends the original message together with the signature.<br><br><strong>Verification:</strong><br>1. The receiver hashes the received message.<br>2. The receiver uses the sender's <strong>public key</strong> to verify the signature and obtain/check the signed hash value.<br>3. The receiver compares the verification result with the newly calculated hash.<br>4. If they match, the signature is valid and the message has not been changed since signing [Chapter 3]." },
+
+            { q: "Case Study: A manager receives a signed contract. The signature is valid, but the message content was changed after it was signed. Explain what should happen during verification and why.", ans: "<strong>Answer:</strong><br>1. The receiver calculates a new hash from the changed contract.<br>2. The receiver verifies the digital signature using the sender's public key.<br>3. The hash represented by the signature will not match the new hash of the changed contract.<br>4. Verification should therefore fail.<br><br><strong>Reason:</strong> A digital signature protects message integrity by linking the signature to the original message content [Chapter 3]." },
+
+            { q: "Case Study: An attacker wants to use a valid signature from a harmless document on a malicious document. What attack is this related to, and how can it work?", ans: "<strong>Attack:</strong> This is related to a hash-collision or Yuval (birthday) attack.<br><br><strong>Process:</strong><br>1. The attacker creates two different documents: one harmless and one malicious.<br>2. The attacker tries to make both documents produce the same hash value.<br>3. The harmless document is given to the victim for signing.<br>4. The attacker takes the valid signature and attaches it to the malicious document.<br>5. Because the hashes are the same, an insecure signature design or weak hash can be abused to make the malicious document appear signed.<br><br><strong>Mitigation:</strong> Use a strong modern hash function and secure digital-signature schemes [Chapter 3]." },
+
+            { q: "Compare symmetric and asymmetric cryptography. Focus on the keys used, encryption/decryption, and key distribution.", ans: "<div class='table-wrapper'><table><tr><th>Feature</th><th>Symmetric</th><th>Asymmetric</th></tr><tr><td><strong>Keys</strong></td><td>One shared secret key</td><td>Public key + private key</td></tr><tr><td><strong>Encryption</strong></td><td>Uses the shared secret key</td><td>Uses a key from the public/private pair depending on the operation</td></tr><tr><td><strong>Decryption</strong></td><td>Uses the shared secret key</td><td>Uses the corresponding key from the pair</td></tr><tr><td><strong>Key distribution</strong></td><td>More difficult because the secret key must be shared securely</td><td>Easier for public-key distribution because the public key can be shared openly, while the private key stays secret</td></tr></table></div>" },
+
+            { q: "Case Study: Alice wants to send Bob a confidential message using asymmetric cryptography. Which key should Alice use, which key should Bob use, and why?", ans: "<strong>Process:</strong><br>1. Alice obtains Bob's trusted <strong>public key</strong>.<br>2. Alice encrypts the message using Bob's public key.<br>3. Alice sends the ciphertext to Bob.<br>4. Bob decrypts the ciphertext using Bob's <strong>private key</strong>.<br><br><strong>Important:</strong> Bob's private key must remain secret. The public key may be distributed to others [Chapter 3]." },
+
+            { q: "Explain how RSA supports public-key cryptography and identify its public and private keys.", ans: "<strong>RSA keys:</strong><br>• <strong>Public key:</strong> (n, e). It can be shared with others.<br>• <strong>Private key:</strong> (n, d). It must be kept secret.<br><br>In confidentiality, a sender can encrypt data using the recipient's public key and the recipient uses the private key to decrypt it. In digital signatures, the private key is used for signing and the public key is used for verification [Chapter 3]." },
+
+            { q: "Explain how a Certificate Authority (CA) and a digital certificate help solve the public-key distribution problem.", ans: "<strong>Step-by-step:</strong><br>1. A user generates a public/private key pair.<br>2. The user provides identity information and the public key to a trusted Certificate Authority (CA).<br>3. The CA verifies the identity according to its procedures.<br>4. The CA issues a digital certificate that binds the user's identity to the public key.<br>5. The CA signs the certificate using the CA's private key.<br>6. A receiver can use the trusted CA public key to verify the certificate.<br>7. If the certificate is valid and trusted, the receiver can use the certified public key with greater confidence [Chapter 3]." },
+
+            { q: "Case Study: A user receives Bob's public key from an unknown person in an email. Explain the security problem and give a solution using a digital certificate.", ans: "<strong>Problem:</strong> The user cannot be sure that the public key really belongs to Bob. An attacker could replace Bob's public key with the attacker's own key and impersonate Bob.<br><br><strong>Solution:</strong><br>1. Obtain Bob's digital certificate issued by a trusted CA.<br>2. Verify the CA's digital signature on the certificate.<br>3. Check the certificate's identity information and validity status.<br>4. Use the public key contained in the trusted certificate if verification succeeds.<br><br>This reduces the risk of accepting a fake public key [Chapter 3]." },
+
+            // =========================
+            // CHAPTER 6 - IMAGE STEGANOGRAPHY
+            // =========================
+            { q: "Compare cryptography and image steganography. Explain why someone may choose image steganography instead of only encrypting the message.", ans: "<div class='table-wrapper'><table><tr><th>Feature</th><th>Cryptography</th><th>Image Steganography</th></tr><tr><td><strong>Main goal</strong></td><td>Hide the meaning of the message</td><td>Hide the existence of the message</td></tr><tr><td><strong>Appearance</strong></td><td>Often produces visible ciphertext</td><td>Can look like an ordinary image</td></tr><tr><td><strong>Why use it?</strong></td><td>Protect message contents</td><td>Reduce attention or suspicion by hiding the message inside a cover image</td></tr></table></div><br><strong>Common idea:</strong> A message can also be encrypted first and then hidden inside the image for layered protection [Chapter 6]." },
+
+            { q: "Case Study: You need to hide a short secret message inside a normal image. Suggest a suitable image steganography method and explain the basic workflow.", ans: "<strong>Suggested method:</strong> LSB (Least Significant Bit) image steganography.<br><br><strong>Workflow:</strong><br>1. Select a suitable cover image.<br>2. Convert the secret message into binary data.<br>3. Replace selected least significant bits of image pixel values with the secret bits.<br>4. Save the modified image as the stego image.<br>5. At the receiver side, read the same LSB positions to extract the hidden bits.<br>6. Convert the extracted bits back into the secret message [Chapter 6].<br><br><strong>Suitable characteristic:</strong> Use a format that preserves the embedded pixel data, such as a lossless image format." },
+
+            // =========================
+            // CHAPTER 7 - AUDIO STEGANOGRAPHY
+            // =========================
+            { q: "Explain the human hearing characteristics that can be used in audio steganography.", ans: "<strong>Important characteristics:</strong><br>1. <strong>Masking effect:</strong> a louder sound can make a quieter sound difficult to hear.<br>2. Human hearing has limits in sensitivity across different frequencies.<br>3. Small changes that are below or near the hearing threshold may be difficult for a listener to notice.<br><br>These characteristics can be used to hide information while trying to keep the audio perceptually similar to the original [Chapter 7]." },
+
+            { q: "Case Study: An organization wants to use LSB audio steganography. Explain what audio format would be suitable and why, and compare it briefly with compressed audio.", ans: "<strong>Suitable format:</strong> WAV or another uncompressed/lossless audio format is suitable for basic LSB embedding.<br><br><strong>Why?</strong><br>1. Audio samples can be changed directly and predictably.<br>2. The embedded LSB information is less likely to be destroyed by another compression stage.<br><br><strong>Compressed audio:</strong> Formats such as MP3 may change or discard data during compression, which can damage or remove LSB-based hidden information [Chapter 7]." },
+
+            // =========================
+            // CHAPTER 8 - TEXT STEGANOGRAPHY (MORE FOCUS)
+            // =========================
+            { q: "Discuss the four main Format-Based text steganography methods and explain how each one hides information.", ans: "<strong>1. Line-shift coding:</strong> changes the vertical position of text lines.<br><strong>2. Word-shift coding:</strong> changes the horizontal position of selected words.<br><strong>3. White-space manipulation:</strong> uses spaces or tabs to represent hidden information.<br><strong>4. Font formatting:</strong> changes font properties such as bold, italic, size, or other formatting to encode information.<br><br>The methods use formatting or layout changes rather than changing the main visible meaning of the text [Chapter 8]." },
+
+            { q: "Case Study: You need to hide a small message in a text file without changing the visible words. Which Format-Based text steganography method would be suitable? Explain your choice and workflow.", ans: "<strong>Suggested method:</strong> White-space manipulation.<br><br><strong>Why?</strong> It can hide data by changing spaces or tabs while keeping the visible words almost unchanged.<br><br><strong>Workflow:</strong><br>1. Prepare the cover text.<br>2. Convert the secret message into a suitable binary or symbol sequence.<br>3. Encode the secret using selected spaces/tabs according to the method.<br>4. Send or store the stego-text.<br>5. The receiver uses the same rule to read the spaces/tabs and extract the hidden message.<br><br><strong>Example tool:</strong> SNOW is associated with hiding information using whitespace in text [Chapter 8]." },
+
+            { q: "Name the main categories of text steganography and give one example of how each category hides information.", ans: "<strong>Categories:</strong><br>1. <strong>Format-Based:</strong> changes formatting or layout, such as spaces, line position, word position, or font attributes.<br>2. <strong>Linguistic/Semantic:</strong> changes wording, synonyms, or sentence construction to carry hidden information.<br><br>Format-based methods focus on the appearance/structure of the text, while linguistic methods use language choices [Chapter 8]." },
+
+            { q: "Explain how the effectiveness of a text steganography method can be measured. What factors should be considered?", ans: "<strong>Important factors:</strong><br>1. <strong>Capacity:</strong> how much secret information can be hidden.<br>2. <strong>Imperceptibility:</strong> how difficult it is for a reader to notice the changes.<br>3. <strong>Robustness:</strong> whether the hidden message survives editing, reformatting, copying, or other changes.<br>4. <strong>Security:</strong> how difficult it is for an attacker to identify or extract the hidden information.<br><br>A good text steganography method balances these factors based on the application [Chapter 8]." },
+
+            { q: "Case Study: A student sends a text document through an editing system that automatically removes extra spaces and changes font formatting. Which text steganography methods are likely to be affected, and what would you suggest instead?", ans: "<strong>Likely affected:</strong><br>• White-space manipulation may fail because extra spaces can be removed.<br>• Font-formatting methods may fail because font changes can be standardized.<br>• Line-shift and word-shift methods may also be affected if the system reflows the document layout.<br><br><strong>Suggestion:</strong> Choose a text steganography technique that matches the properties of the transmission channel, or use a different cover medium if the text system cannot preserve the required formatting [Chapter 8]." }
+        ];
+        // Global state
+        let instantMode = false;
+        let currentSetIndex = 0;
+        let generatedSets = [];
+
+        // Generate 10 unique sets on first load
+        for(let i=0; i<10; i++) {
+            let shuffledMcq = [...mcqBank].sort(() => 0.5 - Math.random());
+            generatedSets.push({
+                mcq: shuffledMcq.slice(0, 40),
+                subj: [...subjBank]
+            });
+        }
+
+        function toggleMode() {
+            instantMode = document.getElementById('modeToggle').checked;
+            let lblExam = document.getElementById('labelExam');
+            let lblInst = document.getElementById('labelInstant');
+            
+            if(instantMode) {
+                lblExam.classList.remove('mode-active');
+                lblInst.classList.add('mode-active');
+            } else {
+                lblInst.classList.remove('mode-active');
+                lblExam.classList.add('mode-active');
+            }
+        }
+
+        function renderSet(index) {
+            const set = generatedSets[index];
+            const sectionA = document.getElementById('sectionA-container');
+            const sectionB = document.getElementById('sectionB-container');
+            
+            document.getElementById('setIndicator').innerText = `Currently viewing: Set ${index + 1} of 10`;
+
+            // Render Section A (MCQ)
+            let htmlA = '';
+            set.mcq.forEach((item, i) => {
+                const qNum = i + 1;
+                htmlA += `
+                <div class="main_box" id="q${qNum}">
+                    <div class="question">${qNum}. ${item.q}</div>
+                    <div class="container">
+                        <div class="options">`;
+                
+                // Shuffle options
+                let opts = [...item.options].sort(() => 0.5 - Math.random());
+                opts.forEach((opt, idx) => {
+                    const originalLetter = opt.charAt(0); // A, B, C, D matches the database ans
+                    const newLetter = String.fromCharCode(65 + idx); // Display A, B, C, D dynamically
+                    const cleanText = opt.substring(3);
+                    htmlA += `<label class="opt" data-val="${originalLetter}"><input type="radio" name="Q${qNum}" value="${originalLetter}" onchange="handleOptionSelect(${qNum}, '${originalLetter}')"> ${newLetter}) ${cleanText}</label>`;
+                });
+
+                htmlA += `
+                        </div>
+                        <div class="explanation" data-ans="${item.ans}"><h4>Correct Answer</h4>${item.exp}</div>
+                    </div>
+                </div>`;
+            });
+            sectionA.innerHTML = htmlA;
+
+            // Render Section B (Subjective)
+            let htmlB = '';
+            set.subj.forEach((item, i) => {
+                const qNum = i + 41;
+                const ansId = `ans-subj-${index}-${i}`;
+                htmlB += `
+                <div class="main_box">
+                    <div class="question">${qNum}. ${item.q}</div>
+                    <div class="container">
+                        <button type="button" class="toggle-btn" onclick="toggleAnswer('${ansId}')">Reveal Answer</button>
+                        <div id="${ansId}" class="sb-answer">
+                            <h4>Suggested Answer:</h4>
+                            ${item.ans}
+                        </div>
+                    </div>
+                </div>`;
+            });
+            sectionB.innerHTML = htmlB;
+
+            // Reset UI states
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').innerText = "Submit Section A";
+            document.getElementById('scoreDisplay').style.display = 'none';
+        }
+
+        // Handles instant feedback if enabled
+        function handleOptionSelect(qNum, selectedVal) {
+            if (!instantMode) return; 
+
+            let qDiv = document.getElementById('q' + qNum);
+            let explanationDiv = qDiv.querySelector('.explanation');
+            let correctVal = explanationDiv.getAttribute('data-ans');
+
+            // Disable all radio buttons and pointer events in this question
+            let radios = qDiv.querySelectorAll('input[type="radio"]');
+            radios.forEach(r => r.disabled = true);
+            let opts = qDiv.querySelectorAll('.opt');
+            opts.forEach(opt => opt.style.pointerEvents = 'none');
+
+            // Show explanation
+            explanationDiv.style.display = 'block';
+
+            let selectedInput = qDiv.querySelector(`input[value="${selectedVal}"]`);
+
+            if (selectedVal === correctVal) {
+                if(selectedInput) selectedInput.parentElement.classList.add('correct-answer');
+                explanationDiv.classList.add('correct');
+            } else {
+                if(selectedInput) selectedInput.parentElement.classList.add('wrong-answer');
+                let correctOpt = qDiv.querySelector(`.opt[data-val="${correctVal}"]`);
+                if(correctOpt) correctOpt.classList.add('correct-answer');
+                explanationDiv.classList.add('wrong');
+            }
+        }
+
+        // Submits the whole quiz (works for both modes)
+        function submitQuiz() {
+            if (document.activeElement && document.activeElement.blur) {
+                document.activeElement.blur();
+            }
+            
+            let score = 0;
+            let totalQuestions = 30;
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Section A Submitted";
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                let qDiv = document.getElementById('q' + i);
+                let explanationDiv = qDiv.querySelector('.explanation');
+                let correctVal = explanationDiv.getAttribute('data-ans');
+                
+                // Show explanations for everything at the end
+                explanationDiv.style.display = 'block';
+
+                let selectedInput = qDiv.querySelector('input:checked');
+                let userVal = selectedInput ? selectedInput.value : null;
+
+                // Disable options so user can't change after submit
+                let opts = qDiv.querySelectorAll('.opt');
+                opts.forEach(opt => opt.style.pointerEvents = 'none');
+                let radios = qDiv.querySelectorAll('input[type="radio"]');
+                radios.forEach(r => r.disabled = true);
+
+                if (userVal === correctVal) {
+                    score++;
+                    if(selectedInput) selectedInput.parentElement.classList.add('correct-answer');
+                    explanationDiv.classList.add('correct');
+                } else {
+                    if(selectedInput) selectedInput.parentElement.classList.add('wrong-answer');
+                    let correctOpt = qDiv.querySelector(`.opt[data-val="${correctVal}"]`);
+                    if(correctOpt) correctOpt.classList.add('correct-answer');
+                    explanationDiv.classList.add('wrong');
+                }
+            }
+
+            let scoreDiv = document.getElementById('scoreDisplay');
+            scoreDiv.style.display = 'block';
+            scoreDiv.innerText = `Section A Score: ${score} / ${totalQuestions}`;
+            
+            window.scrollTo(0, 0);
+        }
+
+        function toggleAnswer(id) {
+            let el = document.getElementById(id);
+            if (el.style.display === "block") {
+                el.style.display = "none";
+            } else {
+                el.style.display = "block";
+            }
+        }
+
+        function nextSet() {
+            currentSetIndex = (currentSetIndex + 1) % 10;
+            renderSet(currentSetIndex);
+            window.scrollTo(0, 0);
+        }
+
+        // Initialize first set on load
+        window.onload = () => {
+            renderSet(currentSetIndex);
+        };
+
+    </script>
+</body>
+</html>
